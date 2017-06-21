@@ -18,6 +18,11 @@ gulp.task('clean', function() {
         return gulp.src('res/')
             .pipe(clean());
 });
+//Functions
+function catchError(e){
+    console.log(e.toString());
+    this.emit('end');    
+}
 
 /**
  * sass task
@@ -44,6 +49,8 @@ gulp.task('jshint', function() {
 
 gulp.task('uglify', function() {
         return gulp.src('dev/js/**/*.js')
+            .pipe(uglify())
+            .on('error', catchError)
             .pipe(uglify())
             .pipe(concat('main.min.js'))
             .pipe(gulp.dest('res/js/'))
