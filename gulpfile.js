@@ -23,7 +23,6 @@ gulp.task('clean', function() {
 gulp.task('sass', function(){
         gulp.src('dev/scss/app.scss')
         .pipe(sass().on('error', sass.logError))
-        .pipe(header(banner))
         .pipe(gulp.dest('res/css/'))
         .pipe(browserSync.reload({stream:true}))
 });
@@ -39,7 +38,6 @@ gulp.task('uglify', function() {
         return gulp.src('dev/js/**/*.js')
             .pipe(uglify())
             .pipe(concat('main.min.js'))
-            .pipe(header(banner))
             .pipe(gulp.dest('res/js/'))
             .pipe(browserSync.stream());
 });
