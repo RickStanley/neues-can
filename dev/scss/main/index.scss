@@ -1,0 +1,6 @@
+.element{
+	width:1000px;
+	@include tablet{
+		width:600px;
+	}	
+}
