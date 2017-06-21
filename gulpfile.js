@@ -8,6 +8,9 @@ const     gulp          = require('gulp')
         , runSequence   = require('run-sequence')
         , imagemin      = require('gulp-imagemin')
         , sass          = require('gulp-sass')
+        , autoprefixer  = require('gulp-autoprefixer')
+        , cleanCSS      = require('gulp-clean-css')
+        , rename        = require('gulp-rename')
         , browserSync   = require('browser-sync').create();
 
 
@@ -23,6 +26,11 @@ gulp.task('clean', function() {
 gulp.task('sass', function(){
         gulp.src('dev/scss/app.scss')
         .pipe(sass().on('error', sass.logError))
+        .pipe(autoprefixer())
+        .pipe(cleanCSS())       
+        .pipe(rename({
+            suffix: '.min'
+        }))
         .pipe(gulp.dest('res/css/'))
         .pipe(browserSync.reload({stream:true}))
 });

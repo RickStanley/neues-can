@@ -1,6 +1,6 @@
 {
-  "name": "Sassy-can",
-  "version": "1.0",
+  "name": "sassy-can",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "."
@@ -18,13 +18,17 @@
     }
   ],
   "devDependencies": {
+    "auto-prefixer": "^0.4.2",
     "browser-sync": "^2.17.0",
     "gulp": "^3.9.0",
+    "gulp-autoprefixer": "^4.0.0",
     "gulp-clean": "^0.3.2",
+    "gulp-clean-css": "^3.4.2",
     "gulp-concat": "^2.6.0",
     "gulp-header": "^1.7.1",
     "gulp-imagemin": "^2.4.0",
     "gulp-jshint": "^2.0.0",
+    "gulp-rename": "^1.2.2",
     "gulp-sass": "^2.1.0",
     "gulp-uglify": "^1.5.1",
     "jshint": "^2.8.0",
