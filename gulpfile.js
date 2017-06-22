@@ -18,9 +18,10 @@ gulp.task('clean', function() {
         return gulp.src('res/')
             .pipe(clean());
 });
-//Functions
-function catchError(e){
-    console.log(e.toString());
+
+// Prevents gulp break if catches erro
+function swallowError(error){
+    console.log(error.toString());
     this.emit('end');    
 }
 
@@ -50,7 +51,7 @@ gulp.task('jshint', function() {
 gulp.task('uglify', function() {
         return gulp.src('dev/js/**/*.js')
             .pipe(uglify())
-            .on('error', catchError)
+            .on('error', swallowError)
             .pipe(uglify())
             .pipe(concat('main.min.js'))
             .pipe(gulp.dest('res/js/'))
