@@ -10,19 +10,20 @@
     "Front-end",
     "front-end Bootstrap"
   ],
-  "author":
+  "description": "It's a kickstarter for projects. Made by Diego and Rick",
+  "license": "SEE LICENSE IN LICENSE FILE",
+  "author": {
+    "name": "Diego Lucena",
+    "email": "diego@fermen.to",
+    "url": "http://fermen.to"
+  },
+  "contributors": [
     {
-      "name": "Diego Lucena",
-      "email": "diego@fermen.to",
+      "name": "RickStanley",
+      "email": "rick-stanley@hotmail.com",
       "url": "http://fermen.to"
-    },
-    "contributors": [
-      {
-        "name": "RickStanley",
-        "email": "rick-stanley@hotmail.com",
-        "url": "http://fermen.to"
-      }
-    ],
+    }
+  ],
   "devDependencies": {
     "auto-prefixer": "^0.4.2",
     "browser-sync": "^2.17.0",
