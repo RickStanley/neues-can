@@ -1,3 +1,4 @@
+//jshint esversion: 6
 (function () {
     // Use strict em function form
     'use strict';
@@ -22,10 +23,10 @@
     });
 
     // Prevents gulp break if catches erro
-    function swallowError(error) {
+    let swallowError = function (error) {
         console.log(error.toString());
         this.emit('end');
-    }
+    };
 
     /**
      * sass task
@@ -42,7 +43,7 @@
             .pipe(gulp.dest('res/css/'))
             .pipe(browserSync.reload({
                 stream: true
-            }))
+            }));
     });
 
 
@@ -93,12 +94,12 @@
 
     //watch
     gulp.task('watch', function () {
-        gulp.watch('dev/img/**/*.{png,gif,jpg}', ['imagemin'])
-        gulp.watch('dev/js/**/*.js', ['uglify'])
+        gulp.watch('dev/img/**/*.{png,gif,jpg}', ['imagemin']);
+        gulp.watch('dev/js/**/*.js', ['uglify']);
         gulp.watch('dev/scss/**/*.scss', ['sass']);
         gulp.watch(['*']).on('change', browserSync.reload);
-    })
+    });
     gulp.task('default', function (cb) {
-        return runSequence('clean', ['jshint', 'uglify', 'sass', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb)
+        return runSequence('clean', ['jshint', 'uglify', 'sass', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
     });
 }());
