@@ -4,7 +4,7 @@
     'use strict';
     const gulp = require('gulp'),
         jshint = require('gulp-jshint'),
-        clean = require('gulp-clean'),
+        del = require('del'),
         concat = require('gulp-concat'),
         uglify = require('gulp-uglify'),
         header = require('gulp-header'),
@@ -14,12 +14,14 @@
         autoprefixer = require('gulp-autoprefixer'),
         cleanCSS = require('gulp-clean-css'),
         rename = require('gulp-rename'),
-        browserSync = require('browser-sync').create();
+        browserSync = require('browser-sync').create(),
+        babel = require('gulp-babel');
 
-
-    gulp.task('clean', function () {
-        return gulp.src('res/')
-            .pipe(clean());
+    // Clears on first run
+    gulp.task('clean:res', function () {
+        return del([
+            'res/**/*'
+        ]);
     });
 
     // Prevents gulp break if catches erro
@@ -28,10 +30,7 @@
         this.emit('end');
     };
 
-    /**
-     * sass task
-     */
-
+    // Sass task
     gulp.task('sass', function () {
         gulp.src('dev/scss/app.scss')
             .pipe(sass().on('error', sass.logError))
@@ -46,15 +45,19 @@
             }));
     });
 
-
+    // JSHint
     gulp.task('jshint', function () {
         return gulp.src('dev/js/**/*.js')
             .pipe(jshint())
             .pipe(jshint.reporter('default'));
     });
 
+    // Minify and Babel, ES5
     gulp.task('uglify', function () {
         return gulp.src('dev/js/**/*.js')
+            .pipe(babel({
+                presets: ['es2015']
+            }))
             .pipe(uglify())
             .on('error', swallowError)
             .pipe(uglify())
@@ -63,10 +66,7 @@
             .pipe(browserSync.stream());
     });
 
-    /**
-     * Imagemin Task
-     */
-
+    // Imagemin Task
     gulp.task('imagemin', function () {
         return gulp.src('dev/img/**/*.{jpg,png,gif}')
             .pipe(imagemin({
@@ -77,7 +77,7 @@
             .pipe(gulp.dest('res/img/'));
     });
 
-    //fonts
+    // Fonts
     gulp.task('fonts', function () {
         return gulp.src('dev/fonts/**/*')
             .pipe(gulp.dest('res/fonts'));
@@ -92,14 +92,16 @@
         });
     });
 
-    //watch
+    // Watch (out!)
     gulp.task('watch', function () {
         gulp.watch('dev/img/**/*.{png,gif,jpg}', ['imagemin']);
         gulp.watch('dev/js/**/*.js', ['uglify']);
         gulp.watch('dev/scss/**/*.scss', ['sass']);
         gulp.watch(['*']).on('change', browserSync.reload);
     });
+
+    // Default (gulp [no_args])
     gulp.task('default', function (cb) {
-        return runSequence('clean', ['jshint', 'uglify', 'sass', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
+        return runSequence('clean:res', ['jshint', 'uglify', 'sass', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
     });
 }());
