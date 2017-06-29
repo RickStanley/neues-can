@@ -27,7 +27,7 @@
 
     // Prevents gulp break if catches erro
     let swallowError = function (error) {
-        console.log(chalk.red("Position: {").concat(chalk.blue(" line: ".concat(error.loc.line))).concat(chalk.red(",")).concat(chalk.green(" column: ".concat(error.loc.column))).concat(chalk.red(" } \n")).concat(chalk.blue(error.codeFrame)));
+        console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n").concat(chalk.red((error.name).concat(": Position {")).concat(chalk.blue(" line: ".concat(error.loc.line))).concat(chalk.red(",")).concat(chalk.green(" column: ".concat(error.loc.column))).concat(chalk.red(" } \n")).concat(chalk.blue(error.codeFrame)).concat(chalk.magenta("\n Path: ".concat(error.message))).concat(chalk.yellow("\n Plugin: ".concat(error.plugin)).concat(chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––")))));
         this.emit('end');
     };
 
