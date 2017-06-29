@@ -15,7 +15,8 @@
         cleanCSS = require('gulp-clean-css'),
         rename = require('gulp-rename'),
         browserSync = require('browser-sync').create(),
-        babel = require('gulp-babel');
+        babel = require('gulp-babel'),
+        chalk = require('chalk');
 
     // Clears on first run
     gulp.task('clean:res', function () {
@@ -26,7 +27,7 @@
 
     // Prevents gulp break if catches erro
     let swallowError = function (error) {
-        console.log(error.toString());
+        console.log(chalk.red("Position: {").concat(chalk.blue(" line: ".concat(error.loc.line))).concat(chalk.red(",")).concat(chalk.green(" column: ".concat(error.loc.column))).concat(chalk.red(" } \n")).concat(chalk.blue(error.codeFrame)));
         this.emit('end');
     };
 
@@ -58,7 +59,6 @@
             .pipe(babel({
                 presets: ['es2015']
             }))
-            .pipe(uglify())
             .on('error', swallowError)
             .pipe(uglify())
             .pipe(concat('main.min.js'))
