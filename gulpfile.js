@@ -15,8 +15,7 @@
         cleanCSS = require('gulp-clean-css'),
         rename = require('gulp-rename'),
         browserSync = require('browser-sync').create(),
-        babel = require('gulp-babel'),
-        strip = require('gulp-strip-comments');
+        babel = require('gulp-babel');
 
     // Clears on first run
     gulp.task('clean:res', function () {
@@ -56,7 +55,6 @@
     // Minify and Babel, ES5
     gulp.task('uglify', function () {
         return gulp.src('dev/js/**/*.js')
-            .pipe(strip())
             .pipe(babel({
                 presets: ['es2015']
             }))
