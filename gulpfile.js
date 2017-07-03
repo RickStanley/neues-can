@@ -27,7 +27,11 @@
 
     // Prevents gulp break if catches erro
     let swallowError = function (error) {
-        console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n").concat(chalk.red((error.name).concat(": Position {")).concat(chalk.blue(" line: ".concat(error.loc.line))).concat(chalk.red(",")).concat(chalk.green(" column: ".concat(error.loc.column))).concat(chalk.red(" } \n")).concat(chalk.blue(error.codeFrame)).concat(chalk.magenta("\n Path: ".concat(error.message))).concat(chalk.yellow("\n Plugin: ".concat(error.plugin)).concat(chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––")))));
+        console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
+            chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.loc.line)) + chalk.red(",") + chalk.green(" column: " + (error.loc.column)) + chalk.red(" } \n") +
+            chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
+            chalk.yellow("\n Plugin: " + (error.plugin)) +
+            chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
         this.emit('end');
     };
 
