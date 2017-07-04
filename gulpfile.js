@@ -16,7 +16,18 @@
         rename = require('gulp-rename'),
         browserSync = require('browser-sync').create(),
         babel = require('gulp-babel'),
-        chalk = require('chalk');
+        chalk = require('chalk'),
+        path = require('path');
+
+    // Destination paths
+    const endPoint = [
+        'res/img/',
+        'res/js/',
+        'res/css/'
+    ];
+
+    // gulp.watch(); array container, for listeners
+    let watchmen = [];
 
     // Clears on first run
     gulp.task('clean:res', function () {
@@ -35,26 +46,23 @@
         this.emit('end');
     };
 
-    // Sass task
-    gulp.task('sass', function () {
-        gulp.src('dev/scss/app.scss')
-            .pipe(sass().on('error', sass.logError))
-            .pipe(autoprefixer())
-            .pipe(cleanCSS())
-            .pipe(rename({
-                suffix: '.min'
-            }))
-            .pipe(gulp.dest('res/css/'))
-            .pipe(browserSync.reload({
-                stream: true
-            }));
-    });
 
     // JSHint
     gulp.task('jshint', function () {
         return gulp.src('dev/js/**/*.js')
             .pipe(jshint())
             .pipe(jshint.reporter('default'));
+    });
+
+    // Imagemin Task
+    gulp.task('imagemin', function () {
+        return gulp.src('dev/img/**/*.{jpg,png,gif}')
+            .pipe(imagemin({
+                optimizationLevel: 3,
+                progressive: true,
+                interlaced: true
+            }))
+            .pipe(gulp.dest(endPoint[0]));
     });
 
     // Minify and Babel, ES5
@@ -66,19 +74,23 @@
             .on('error', swallowError)
             .pipe(uglify())
             .pipe(concat('main.min.js'))
-            .pipe(gulp.dest('res/js/'))
+            .pipe(gulp.dest(endPoint[1]))
             .pipe(browserSync.stream());
     });
 
-    // Imagemin Task
-    gulp.task('imagemin', function () {
-        return gulp.src('dev/img/**/*.{jpg,png,gif}')
-            .pipe(imagemin({
-                optimizationLevel: 3,
-                progressive: true,
-                interlaced: true
+    // Sass task
+    gulp.task('sass', function () {
+        gulp.src('dev/scss/app.scss')
+            .pipe(sass().on('error', sass.logError))
+            .pipe(autoprefixer())
+            .pipe(cleanCSS())
+            .pipe(rename({
+                suffix: '.min'
             }))
-            .pipe(gulp.dest('res/img/'));
+            .pipe(gulp.dest(endPoint[2]))
+            .pipe(browserSync.reload({
+                stream: true
+            }));
     });
 
     // Fonts
@@ -98,10 +110,28 @@
 
     // Watch (out!)
     gulp.task('watch', function () {
-        gulp.watch('dev/img/**/*.{png,gif,jpg}', ['imagemin']);
-        gulp.watch('dev/js/**/*.js', ['uglify']);
-        gulp.watch('dev/scss/**/*.scss', ['sass']);
+        watchmen[0] = gulp.watch('dev/img/**/*.{png,gif,jpg}', ['imagemin']);
+        watchmen[1] = gulp.watch('dev/js/**/*.js', ['uglify']);
+        watchmen[2] = gulp.watch('dev/scss/**/*.scss', ['sass']);
         gulp.watch(['*']).on('change', browserSync.reload);
+        watchmen.forEach(function (item, index) {
+            item.on('change', function (event) {
+                if (event.type === 'deleted') {
+                    let fileName = path.basename(event.path);
+                    console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /dev/. Deleting corresponding file on /res/."));
+                    if (fileName === 'zmaster.js') {
+                        fileName = 'main.min.js';
+                    }
+                    del([endPoint[index] + fileName])
+                        .then(function (paths) {
+                            console.log(chalk.blue("Deleted file(s): " + paths.join('\n')));
+                        })
+                        .catch(function (reason) {
+                            console.log(chalk.red("Something went wrong: " + reason));
+                        });
+                }
+            });
+        });
     });
 
     // Default (gulp [no_args])
