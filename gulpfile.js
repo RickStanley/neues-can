@@ -57,11 +57,22 @@
     // Imagemin Task
     gulp.task('imagemin', function () {
         return gulp.src('dev/img/**/*.{jpg,png,gif}')
-            .pipe(imagemin({
-                optimizationLevel: 3,
-                progressive: true,
-                interlaced: true
-            }))
+            .pipe(imagemin([
+                imagemin.gifsicle({
+                    interlaced: true
+                }),
+                imagemin.jpegtran({
+                    progressive: true
+                }),
+                imagemin.optipng({
+                    optimizationLevel: 5
+                }),
+                imagemin.svgo({
+                    plugins: [{
+                        removeViewBox: true
+                    }]
+                })
+            ]))
             .pipe(gulp.dest(endPoint[0]));
     });
 
