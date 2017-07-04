@@ -19,12 +19,21 @@
         chalk = require('chalk'),
         path = require('path'),
         watch = require('gulp-watch');
+    const i = process.argv.indexOf("--vhost");
+    if (i > -1) {
+        try {
+            const vhost = process.argv[i + 1];
+            console.log(vhost);
+        } catch (erro) {
+            console.log("Expected one paremeter: " + erro);
+        }
+    }
 
     // Destination paths
     const endPoint = [
-        'res/img/',
-        'res/js/',
-        'res/css/'
+        'dist/img/',
+        'dist/js/',
+        'dist/css/'
     ];
 
     // gulp.watch(); array container, for listeners
@@ -33,7 +42,7 @@
     // Clears on first run
     gulp.task('clean:res', function () {
         return del([
-            'res/**/*'
+            'dist/**/*'
         ]);
     });
 
@@ -120,16 +129,24 @@
     // Fonts
     gulp.task('fonts', function () {
         return gulp.src('dev/fonts/**/*')
-            .pipe(gulp.dest('res/fonts'));
+            .pipe(gulp.dest('dist/fonts'));
     });
 
     // Static server
+    // if you want to use vhost
+    // remover server, and add proxy: "http://yourvhost.dev"
     gulp.task('browser-sync', function () {
-        browserSync.init({
-            server: {
-                baseDir: ""
-            }
-        });
+        if (typeof vhost !== 'undefined' && vhost === '' && vhost !== null) {
+            browserSync.init({
+                proxy: vhost
+            });
+        } else {
+            browserSync.init({
+                server: {
+                    baseDir: ""
+                }
+            });
+        }
     });
 
     // Watch (out!)
@@ -140,7 +157,7 @@
         watcher.forEach(function (item, index) {
             item.on('unlink', function (file) {
                 let fileName = path.basename(file);
-                console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /dev/. Deleting corresponding file on /res/."));
+                console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /dev/. Deleting corresponding file on /dist/."));
                 if (fileName === 'zmaster.js') {
                     fileName = 'main.min.js';
                 }
