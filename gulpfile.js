@@ -2,6 +2,23 @@
 (function () {
     // Use strict em function form
     'use strict';
+    // Vhost argument
+    const i = process.argv.indexOf("--vhost");
+    if (i > -1) {
+        try {
+            // Url validation RegExp
+            const regExp = /^((https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
+            if (regExp.test(process.argv[i + 1])) {
+                var vhost = process.argv[i + 1];
+            } else {
+                setTimeout(function () {
+                    console.log("Please insert a valid URL to your vhost");
+                }, 3000);
+            }
+        } catch (erro) {
+            console.log("Expected one paremeter: " + erro);
+        }
+    }
     const gulp = require('gulp'),
         jshint = require('gulp-jshint'),
         del = require('del'),
@@ -19,15 +36,6 @@
         chalk = require('chalk'),
         path = require('path'),
         watch = require('gulp-watch');
-    const i = process.argv.indexOf("--vhost");
-    if (i > -1) {
-        try {
-            const vhost = process.argv[i + 1];
-            console.log(vhost);
-        } catch (erro) {
-            console.log("Expected one paremeter: " + erro);
-        }
-    }
 
     // Destination paths
     const endPoint = [
@@ -40,7 +48,7 @@
     let watcher = [];
 
     // Clears on first run
-    gulp.task('clean:res', function () {
+    gulp.task('clean:dist', function () {
         return del([
             'dist/**/*'
         ]);
@@ -133,18 +141,17 @@
     });
 
     // Static server
-    // if you want to use vhost
-    // remover server, and add proxy: "http://yourvhost.dev"
+    // and virtual-host
     gulp.task('browser-sync', function () {
-        if (typeof vhost !== 'undefined' && vhost === '' && vhost !== null) {
-            browserSync.init({
-                proxy: vhost
-            });
-        } else {
+        if (typeof vhost === 'undefined' || vhost === '' || vhost === null) {
             browserSync.init({
                 server: {
                     baseDir: ""
                 }
+            });
+        } else {
+            browserSync.init({
+                proxy: vhost
             });
         }
     });
@@ -174,6 +181,6 @@
 
     // Default (gulp [no_args])
     gulp.task('default', function (cb) {
-        return runSequence('clean:res', ['jshint', 'uglify', 'sass', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
+        return runSequence('clean:dist', ['jshint', 'uglify', 'sass', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
     });
 }());
