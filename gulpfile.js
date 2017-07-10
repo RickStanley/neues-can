@@ -50,7 +50,10 @@
     // Clears on first run
     gulp.task('clean:dist', function () {
         return del([
-            'dist/**/*'
+            'dist/**/*',
+            '!dis/img/**/*',
+            '!dist/img/',
+            '!dist/img/**'
         ]);
     });
 
