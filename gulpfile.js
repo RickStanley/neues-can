@@ -3,13 +3,14 @@
     // Use strict em function form
     'use strict';
     // Vhost argument
-    const i = process.argv.indexOf("--vhost");
-    if (i > -1) {
+    const vArg = process.argv.indexOf("--vhost"),
+        iArg = process.argv.indexOf("--imgdel");
+    if (vArg > -1) {
         try {
             // Url validation RegExp
             const regExp = /^((https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
-            if (regExp.test(process.argv[i + 1])) {
-                var vhost = process.argv[i + 1];
+            if (regExp.test(process.argv[vArg + 1])) {
+                var vhost = process.argv[vArg + 1];
             } else {
                 setTimeout(function () {
                     console.log("Please insert a valid URL to your vhost");
@@ -35,7 +36,8 @@
         babel = require('gulp-babel'),
         chalk = require('chalk'),
         path = require('path'),
-        watch = require('gulp-watch');
+        watch = require('gulp-watch'),
+        fs = require('fs');
 
     // Destination paths
     const endPoint = [
@@ -51,9 +53,9 @@
     gulp.task('clean:dist', function () {
         return del([
             'dist/**/*',
-            '!dis/img/**/*',
-            '!dist/img/',
-            '!dist/img/**'
+            (iArg > -1) ? '' : '!dis/img/**/*',
+            (iArg > -1) ? '' : '!dist/img/',
+            (iArg > -1) ? '' : '!dist/img/**'
         ]);
     });
 
@@ -150,11 +152,13 @@
             browserSync.init({
                 server: {
                     baseDir: ""
-                }
+                },
+                reloadDebounce: 2000
             });
         } else {
             browserSync.init({
-                proxy: vhost
+                proxy: vhost,
+                reloadDelay: 2000
             });
         }
     });
@@ -166,18 +170,34 @@
         }).on('change', browserSync.reload);
         watcher.forEach(function (item, index) {
             item.on('unlink', function (file) {
-                let fileName = path.basename(file);
+                const sId = file.lastIndexOf('dev/') + 4;
+                let fileName = path.basename(file),
+                    pathToFileDist = file.replace(file.substring(0, sId), "dist/"),
+                    pathToFileDev = file.substring(0, file.lastIndexOf("/"));
                 console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /dev/. Deleting corresponding file on /dist/."));
                 if (fileName === 'zmaster.js') {
                     fileName = 'main.min.js';
                 }
-                del([endPoint[index] + fileName])
+                del([pathToFileDist])
                     .then(function (paths) {
                         console.log(chalk.blue("Deleted file(s): " + paths.join('\n')));
                     })
                     .catch(function (reason) {
                         console.log(chalk.red("Something went wrong: " + reason));
                     });
+                fs.readdir(pathToFileDev, function (err, files) {
+                    if (err) throw err;
+                    let filesExist = false;
+                    for (let key in files) {
+                        if (files.hasOwnProperty(key)) {
+                            if ((path.extname(files[key]) === '') === false) filesExist = true;
+                        }
+                    }
+                    if (!filesExist) {
+                        pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
+                        del([pathToFileDev, pathToFileDist]);
+                    }
+                });
             });
         });
     });
