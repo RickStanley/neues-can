@@ -50,7 +50,7 @@
     let watcher = [];
 
     // Clears on first run
-    gulp.task('clean:dist', function () {
+    gulp.task('clean:dist',() => {
         return del([
             'dist/**/*',
             (iArg > -1) ? '' : '!dis/img/**/*',
@@ -60,7 +60,7 @@
     });
 
     // Prevents gulp break if catches erro
-    let swallowError = function (error) {
+    let swallowError = (error) => {
         console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
             chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.loc.line)) + chalk.red(",") + chalk.green(" column: " + (error.loc.column)) + chalk.red(" } \n") +
             chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
@@ -71,17 +71,17 @@
 
 
     // JSHint
-    gulp.task('jshint', function () {
+    gulp.task('jshint', () => {
         return gulp.src('dev/js/**/*.js')
             .pipe(jshint())
             .pipe(jshint.reporter('default'));
     });
 
     // Imagemin Task
-    gulp.task('imagemin', function () {
+    gulp.task('imagemin', () => {
         watcher[0] = watch('dev/img/**/*.{png,gif,jpg}', {
             ignoreInitial: false
-        }, function () {
+        }, () => {
             gulp.src('dev/img/**/*.{jpg,png,gif}')
                 .pipe(imagemin([
                     imagemin.gifsicle({
@@ -104,10 +104,10 @@
     });
 
     // Minify and Babel, ES5
-    gulp.task('uglify', function () {
+    gulp.task('uglify', () => {
         watcher[1] = watch('dev/js/**/*.js', {
             ignoreInitial: false
-        }, function () {
+        }, () => {
             gulp.src('dev/js/**/*.js')
                 .pipe(babel({
                     presets: ['es2015']
@@ -121,10 +121,10 @@
     });
 
     // Sass task
-    gulp.task('sass', function () {
+    gulp.task('sass', () => {
         watcher[2] = watch('dev/scss/**/*.scss', {
             ignoreInitial: false
-        }, function () {
+        }, () => {
             gulp.src('dev/scss/app.scss')
                 .pipe(sass().on('error', sass.logError))
                 .pipe(autoprefixer())
@@ -140,14 +140,14 @@
     });
 
     // Fonts
-    gulp.task('fonts', function () {
+    gulp.task('fonts', () => {
         return gulp.src('dev/fonts/**/*')
             .pipe(gulp.dest('dist/fonts'));
     });
 
     // Static server
     // and virtual-host
-    gulp.task('browser-sync', function () {
+    gulp.task('browser-sync', () => {
         if (typeof vhost === 'undefined' || vhost === '' || vhost === null) {
             browserSync.init({
                 server: {
@@ -164,12 +164,12 @@
     });
 
     // Watch (out!)
-    gulp.task('watch', function () {
+    gulp.task('watch',() => {
         watch(['*'], {
             ignoreInitial: false
         }).on('change', browserSync.reload);
-        watcher.forEach(function (item, index) {
-            item.on('unlink', function (file) {
+        watcher.forEach((item, index) => {
+            item.on('unlink',(file) => {
                 const sId = file.lastIndexOf('dev/') + 4;
                 let fileName = path.basename(file),
                     pathToFileDist = file.replace(file.substring(0, sId), "dist/"),
@@ -179,13 +179,13 @@
                     fileName = 'main.min.js';
                 }
                 del([pathToFileDist])
-                    .then(function (paths) {
+                    .then((paths) => {
                         console.log(chalk.blue("Deleted file(s): " + paths.join('\n')));
                     })
-                    .catch(function (reason) {
+                    .catch((reason) => {
                         console.log(chalk.red("Something went wrong: " + reason));
                     });
-                fs.readdir(pathToFileDev, function (err, files) {
+                fs.readdir(pathToFileDev, (err, files) => {
                     if (err) throw err;
                     let filesExist = false;
                     for (let key in files) {
@@ -203,7 +203,7 @@
     });
 
     // Default (gulp [no_args])
-    gulp.task('default', function (cb) {
+    gulp.task('default', (cb) => {
         return runSequence('clean:dist', ['jshint', 'uglify', 'sass', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
     });
 }());
