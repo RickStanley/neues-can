@@ -50,7 +50,7 @@
     let watcher = [];
 
     // Clears on first run
-    gulp.task('clean:dist',() => {
+    gulp.task('clean:dist', () => {
         return del([
             'dist/**/*',
             (iArg > -1) ? '' : '!dis/img/**/*',
@@ -164,12 +164,12 @@
     });
 
     // Watch (out!)
-    gulp.task('watch',() => {
+    gulp.task('watch', () => {
         watch(['*'], {
             ignoreInitial: false
         }).on('change', browserSync.reload);
         watcher.forEach((item, index) => {
-            item.on('unlink',(file) => {
+            item.on('unlink', (file) => {
                 const sId = file.lastIndexOf('dev/') + 4;
                 let fileName = path.basename(file),
                     pathToFileDist = file.replace(file.substring(0, sId), "dist/"),
@@ -188,15 +188,19 @@
                 fs.readdir(pathToFileDev, (err, files) => {
                     if (err) throw err;
                     let filesExist = false;
-                    for (let key in files) {
-                        if (files.hasOwnProperty(key)) {
-                            if ((path.extname(files[key]) === '') === false) filesExist = true;
+                    return new Promise(function (resolve, reject) {
+                        for (let key in files) {
+                            if (files.hasOwnProperty(key)) {
+                                if ((path.extname(files[key]) === '') === false) filesExist = true;
+                            }
                         }
-                    }
-                    if (!filesExist) {
-                        pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
-                        del([pathToFileDev, pathToFileDist]);
-                    }
+                        resolve(filesExist);
+                    }).then(function (exist) {
+                        if (!exist) {
+                            pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
+                            del(pathToFileDist);
+                        }
+                    });
                 });
             });
         });
