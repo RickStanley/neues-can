@@ -141,8 +141,12 @@
 
     // Fonts
     gulp.task('fonts', () => {
-        return gulp.src('dev/fonts/**/*')
-            .pipe(gulp.dest('dist/fonts'));
+        watcher[3] = watch('dev/fonts/**/*', {
+            ignoreInitial: false
+        }, () => {
+            gulp.src('dev/fonts/**/*')
+                .pipe(gulp.dest('dist/fonts'));
+        });
     });
 
     // Static server
@@ -153,12 +157,12 @@
                 server: {
                     baseDir: ""
                 },
-                reloadDebounce: 2000
+                reloadDelay: 1500
             });
         } else {
             browserSync.init({
                 proxy: vhost,
-                reloadDelay: 2000
+                reloadDelay: 1500
             });
         }
     });
