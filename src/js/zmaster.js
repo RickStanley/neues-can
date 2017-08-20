@@ -5,3 +5,5 @@
 // $(function () { "use strict"; /*BODY*/ });  // this is short for jQuery.ready();
 // document.addEventListener("DOMContentLoaded", function (event) { /*BODY*/ }, false);
 // window.addEventListener("load", function , false);
+import sayHello from './global/globals';
+document.write(`<br> ${sayHello("User")}`);

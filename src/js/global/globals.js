@@ -1,2 +1,4 @@
 // Global or constants go in here
-// e.g.: export default function name(){}
+export default function sayHello(name) {
+    return `Hello ${name}, I'm globals.js, you're using ES6!`;
+}
