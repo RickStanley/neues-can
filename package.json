@@ -43,7 +43,6 @@
     "gulp-sass": "^3.1.0",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-uglify": "^3.0.0",
-    "gulp-util": "^3.0.8",
     "gulp-watch": "^4.3.11",
     "jshint": "^2.8.0",
     "lodash.assign": "^4.2.0",
