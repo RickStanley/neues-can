@@ -17,13 +17,12 @@
                 }, 3000);
             }
         } catch (erro) {
-            console.log("Expected one paremeter: " + erro);
+            console.log(`Expected one paremeter: ${erro}`);
         }
     }
     const gulp = require('gulp'),
         jshint = require('gulp-jshint'),
         del = require('del'),
-        concat = require('gulp-concat'),
         uglify = require('gulp-uglify'),
         header = require('gulp-header'),
         runSequence = require('run-sequence'),
@@ -33,24 +32,58 @@
         cleanCSS = require('gulp-clean-css'),
         rename = require('gulp-rename'),
         browserSync = require('browser-sync').create(),
-        babel = require('gulp-babel'),
         chalk = require('chalk'),
         path = require('path'),
         watch = require('gulp-watch'),
-        fs = require('fs');
+        fs = require('fs'),
+        browserify = require('browserify'),
+        source = require('vinyl-source-stream'),
+        sourcemaps = require('gulp-sourcemaps'),
+        gutil = require('gulp-util'),
+        buffer = require('vinyl-buffer'),
+        watchify = require('watchify'),
+        assign = require('lodash.assign'),
+        htmlmin = require('gulp-htmlmin');
+
+    // gulp.watch(); array container, for listeners
+    let watcher = [];
+    // Paths to src directories
+    const pathsSrc = {
+        pages: 'src/*.html',
+        images: 'src/img/**/*.{png,gif,jpg}',
+        styles: 'src/scss/**/*.scss',
+        fonts: 'src/fonts/**/*',
+        scripts: 'src/ts/**/*.ts'
+    };
 
     // Destination paths
     const endPoint = [
         'dist/img/',
         'dist/js/',
-        'dist/css/'
+        'dist/css/',
+        'dist/fonts'
     ];
 
-    // gulp.watch(); array container, for listeners
-    let watcher = [];
+    // Custom options for BrowserSync
+    const customOptions = {
+        basedir: '.',
+        debug: true,
+        entries: ['src/js/zmaster.js'],
+        cache: {},
+        packageCache: {}
+    };
+
+    // Browserify and watchify assignments
+    const opts = assign({}, watchify.arguments, customOptions);
+
+    const b = watchify(browserify(opts)
+        .transform('babelify', {
+            presets: ['es2015']
+        })
+    );
 
     // Clears on first run
-    gulp.task('clean:dist', () => {
+    gulp.task('clean', () => {
         return del([
             'dist/**/*',
             (iArg > -1) ? '' : '!dis/img/**/*',
@@ -59,30 +92,30 @@
         ]);
     });
 
-    // Prevents gulp break if catches erro
-    let swallowError = (error) => {
-        console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
-            chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.loc.line)) + chalk.red(",") + chalk.green(" column: " + (error.loc.column)) + chalk.red(" } \n") +
-            chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
-            chalk.yellow("\n Plugin: " + (error.plugin)) +
-            chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
-        this.emit('end');
-    };
-
-
     // JSHint
     gulp.task('jshint', () => {
-        return gulp.src('dev/js/**/*.js')
+        return gulp.src('src/js/**/*.js')
             .pipe(jshint())
             .pipe(jshint.reporter('default'));
     });
 
-    // Imagemin Task
-    gulp.task('imagemin', () => {
-        watcher[0] = watch('dev/img/**/*.{png,gif,jpg}', {
+    // Copy html(s)
+    gulp.task('copyHtml', () => {
+        watcher[0] = watch(pathsSrc.pages, {
             ignoreInitial: false
         }, () => {
-            gulp.src('dev/img/**/*.{jpg,png,gif}')
+            gulp.src(pathsSrc.pages)
+                .pipe(htmlmin({collapseWhitespace: true}))
+                .pipe(gulp.dest('dist'));
+        });
+    });
+
+    // Imagemin Task
+    gulp.task('imagemin', () => {
+        watcher[1] = watch(pathsSrc.images, {
+            ignoreInitial: false
+        }, () => {
+            gulp.src(pathsSrc.images)
                 .pipe(imagemin([
                     imagemin.gifsicle({
                         interlaced: true
@@ -98,40 +131,56 @@
                             removeViewBox: true
                         }]
                     })
-                ]))
+                ], {
+                    verbose: true
+                }))
                 .pipe(gulp.dest(endPoint[0]));
         });
     });
+    // Browserify task, undertaker: copyHtml task, followed by update (bundle builder) and log
+    gulp.task('browserify', ['copyHtml'], bundle);
+    b.on('update', bundle);
+    b.on('log', console.log);
 
-    // Minify and Babel, ES5
-    gulp.task('uglify', () => {
-        watcher[1] = watch('dev/js/**/*.js', {
-            ignoreInitial: false
-        }, () => {
-            gulp.src('dev/js/**/*.js')
-                .pipe(babel({
-                    presets: ['es2015']
-                }))
-                .on('error', swallowError)
-                .pipe(uglify())
-                .pipe(concat('main.min.js'))
-                .pipe(gulp.dest(endPoint[1]))
-                .pipe(browserSync.stream());
-        });
-    });
+    function bundle() {
+        return b.bundle()
+            .on('error', (error) => {
+                console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
+                    chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.line)) + chalk.red(",") + chalk.green(" column: " + (error.column)) + chalk.red(" } \n") + chalk.magenta("\nMessage: " + (error.message)) +
+                    chalk.yellow("\nFile name: " + (error.fileName)) +
+                    chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
+                this.emit('end');
+            })
+            .pipe(source('bundle.js'))
+            .pipe(buffer())
+            .pipe(sourcemaps.init({
+                loadMaps: true
+            }))
+            .pipe(uglify())
+            .pipe(rename({
+                suffix: '.min'
+            }))
+            .pipe(sourcemaps.write('./'))
+            .pipe(gulp.dest(endPoint[1]))
+            .pipe(browserSync.reload({
+                stream: true
+            }));
+    }
 
     // Sass task
-    gulp.task('sass', () => {
-        watcher[2] = watch('dev/scss/**/*.scss', {
+    gulp.task('sassmin', () => {
+        watch(pathsSrc.styles, {
             ignoreInitial: false
         }, () => {
-            gulp.src('dev/scss/app.scss')
+            gulp.src('src/scss/app.scss')
                 .pipe(sass().on('error', sass.logError))
+                .pipe(sourcemaps.init())
                 .pipe(autoprefixer())
                 .pipe(cleanCSS())
                 .pipe(rename({
                     suffix: '.min'
                 }))
+                .pipe(sourcemaps.write('./'))
                 .pipe(gulp.dest(endPoint[2]))
                 .pipe(browserSync.reload({
                     stream: true
@@ -141,10 +190,10 @@
 
     // Fonts
     gulp.task('fonts', () => {
-        watcher[3] = watch('dev/fonts/**/*', {
+        watcher[2] = watch(pathsSrc.fonts, {
             ignoreInitial: false
         }, () => {
-            gulp.src('dev/fonts/**/*')
+            gulp.src(endPoint[3])
                 .pipe(gulp.dest('dist/fonts'));
         });
     });
@@ -155,55 +204,54 @@
         if (typeof vhost === 'undefined' || vhost === '' || vhost === null) {
             browserSync.init({
                 server: {
-                    baseDir: ""
+                    baseDir: "./dist"
                 },
-                reloadDelay: 1500
+                reloadDelay: 1000
             });
         } else {
             browserSync.init({
                 proxy: vhost,
-                reloadDelay: 1500
+                reloadDelay: 1000
             });
         }
     });
 
     // Watch (out!)
     gulp.task('watch', () => {
-        watch(['*'], {
+        watch([pathsSrc.pages], {
             ignoreInitial: false
         }).on('change', browserSync.reload);
         watcher.forEach((item, index) => {
             item.on('unlink', (file) => {
-                const sId = file.lastIndexOf('dev/') + 4;
+                const sId = file.lastIndexOf('src/') + 4;
                 let fileName = path.basename(file),
                     pathToFileDist = file.replace(file.substring(0, sId), "dist/"),
                     pathToFileDev = file.substring(0, file.lastIndexOf("/"));
-                console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /dev/. Deleting corresponding file on /dist/."));
-                if (fileName === 'zmaster.js') {
-                    fileName = 'main.min.js';
-                }
+                console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /src/. Deleting corresponding file on /dist/."));
                 del([pathToFileDist])
                     .then((paths) => {
-                        console.log(chalk.blue("Deleted file(s): " + paths.join('\n')));
+                        console.log(chalk.blue(`Deleted file(s): ${paths.join('\n')}`));
                     })
                     .catch((reason) => {
-                        console.log(chalk.red("Something went wrong: " + reason));
+                        console.log(chalk.red(`Something went wrong: ${reason}`));
                     });
                 fs.readdir(pathToFileDev, (err, files) => {
                     if (err) throw err;
                     let filesExist = false;
-                    return new Promise(function (resolve, reject) {
+                    return new Promise((resolve, reject) => {
                         for (let key in files) {
                             if (files.hasOwnProperty(key)) {
                                 if ((path.extname(files[key]) === '') === false) filesExist = true;
                             }
                         }
                         resolve(filesExist);
-                    }).then(function (exist) {
+                    }).then((exist) => {
                         if (!exist) {
                             pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
                             del(pathToFileDist);
                         }
+                    }, (reason) => {
+                        console.log(`Something went wrong trying to read dir: ${reason}`);
                     });
                 });
             });
@@ -212,6 +260,6 @@
 
     // Default (gulp [no_args])
     gulp.task('default', (cb) => {
-        return runSequence('clean:dist', ['jshint', 'uglify', 'sass', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
+        return runSequence('clean', [ 'browserify','jshint', 'sassmin', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
     });
 }());
