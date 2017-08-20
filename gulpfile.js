@@ -105,8 +105,13 @@
             ignoreInitial: false
         }, () => {
             gulp.src(pathsSrc.pages)
-                .pipe(htmlmin({collapseWhitespace: true}))
-                .pipe(gulp.dest('dist'));
+                .pipe(htmlmin({
+                    collapseWhitespace: true
+                }))
+                .pipe(gulp.dest('dist'))
+                .pipe(browserSync.reload({
+                    stream: true
+                }));
         });
     });
 
@@ -220,7 +225,7 @@
 
     // Watch (out!)
     gulp.task('watch', () => {
-        watch([pathsSrc.pages], {
+        watch(pathsSrc.scripts, {
             ignoreInitial: false
         }).on('change', browserSync.reload);
         watcher.forEach((item, index) => {
@@ -262,6 +267,6 @@
 
     // Default (gulp [no_args])
     gulp.task('default', (cb) => {
-        return runSequence('clean', [ 'browserify','jshint', 'sassmin', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
+        return runSequence('clean', ['browserify', 'jshint', 'sassmin', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
     });
 }());
