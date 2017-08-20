@@ -142,15 +142,17 @@
     b.on('update', bundle);
     b.on('log', console.log);
 
+    let swallowError = (error) => {
+        console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
+            chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.loc.line)) + chalk.red(",") + chalk.green(" column: " + (error.loc.column)) + chalk.red(" } \n") +
+            chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
+            chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
+        // this.emit('end');
+    };
+
     function bundle() {
         return b.bundle()
-            .on('error', (error) => {
-                console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
-                    chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.line)) + chalk.red(",") + chalk.green(" column: " + (error.column)) + chalk.red(" } \n") + chalk.magenta("\nMessage: " + (error.message)) +
-                    chalk.yellow("\nFile name: " + (error.fileName)) +
-                    chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
-                this.emit('end');
-            })
+            .on('error', swallowError)
             .pipe(source('bundle.js'))
             .pipe(buffer())
             .pipe(sourcemaps.init({
