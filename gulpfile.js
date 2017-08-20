@@ -148,10 +148,16 @@
     b.on('log', console.log);
 
     let swallowError = (error) => {
-        console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
+        try {
+            console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
             chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.loc.line)) + chalk.red(",") + chalk.green(" column: " + (error.loc.column)) + chalk.red(" } \n") +
             chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
             chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
+        } catch (err) {
+            console.log(error);
+        } finally {
+            console.log("An undefined error has ocurred after trying to bundle JS");
+        }
         // this.emit('end');
     };
 
