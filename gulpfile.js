@@ -3,9 +3,11 @@
     // Use strict em function form
     'use strict';
     // Vhost argument
-    const vArg = process.argv.indexOf("--vhost"),
-        iArg = process.argv.indexOf("--imgdel");
-    if (vArg > -1) {
+    const vArg = (process.argv.indexOf("--vhost") > -1) ? true : false,
+        iArg = process.argv.indexOf("--imgdel"),
+        srcArg = (process.argv.indexOf("--source") > -1) ? true : false,
+        strict = (process.argv.indexOf("--strict") >-1) ? '': ['transform-remove-strict-mode'];
+    if (vArg) {
         try {
             // Url validation RegExp
             const regExp = /^((https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
@@ -43,7 +45,8 @@
         buffer = require('vinyl-buffer'),
         watchify = require('watchify'),
         assign = require('lodash.assign'),
-        htmlmin = require('gulp-htmlmin');
+        htmlmin = require('gulp-htmlmin'),
+        gulpif = require('gulp-if');
 
     // gulp.watch(); array container, for listeners
     let watcher = [];
@@ -78,7 +81,8 @@
 
     const b = watchify(browserify(opts)
         .transform('babelify', {
-            presets: ['es2015']
+            presets: ['es2015'],
+            plugins: strict
         })
     );
 
@@ -154,7 +158,7 @@
             chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
             chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
         } catch (err) {
-            console.log(error);
+            console.log(chalk.red(error));
         } finally {
             console.log("An undefined error has ocurred after trying to bundle JS");
         }
@@ -166,14 +170,14 @@
             .on('error', swallowError)
             .pipe(source('bundle.js'))
             .pipe(buffer())
-            .pipe(sourcemaps.init({
+            .pipe(gulpif(srcArg, sourcemaps.init({
                 loadMaps: true
-            }))
+            })))
             .pipe(uglify())
             .pipe(rename({
                 suffix: '.min'
             }))
-            .pipe(sourcemaps.write('./'))
+            .pipe(gulpif(srcArg, sourcemaps.write('./')))
             .pipe(gulp.dest(endPoint[1]))
             .pipe(browserSync.reload({
                 stream: true
@@ -187,13 +191,13 @@
         }, () => {
             gulp.src('src/scss/app.scss')
                 .pipe(sass().on('error', sass.logError))
-                .pipe(sourcemaps.init())
+                .pipe(gulpif(srcArg, sourcemaps.init()))
                 .pipe(autoprefixer())
                 .pipe(cleanCSS())
                 .pipe(rename({
                     suffix: '.min'
                 }))
-                .pipe(sourcemaps.write('./'))
+                .pipe(gulpif(srcArg, sourcemaps.write('./')))
                 .pipe(gulp.dest(endPoint[2]))
                 .pipe(browserSync.reload({
                     stream: true
