@@ -46,7 +46,8 @@
         watchify = require('watchify'),
         assign = require('lodash.assign'),
         htmlmin = require('gulp-htmlmin'),
-        gulpif = require('gulp-if');
+        gulpif = require('gulp-if'),
+        inject = require('gulp-inject');
 
     // gulp.watch(); array container, for listeners
     let watcher = [];
@@ -109,6 +110,24 @@
             ignoreInitial: false
         }, () => {
             gulp.src(pathsSrc.pages)
+                .pipe(inject(gulp.src(['./src/partials/head.html']), {
+                    starttag: '<!-- inject:head:{{ext}} -->',
+                    transform: function(filePath, file) {
+                        return file.contents.toString('utf8');
+                    }
+                }))
+                .pipe(inject(gulp.src(['./src/partials/header.html']), {
+                    starttag: '<!-- inject:header:{{ext}} -->',
+                    transform: function(filePath, file) {
+                        return file.contents.toString('utf8');
+                    }
+                }))
+                .pipe(inject(gulp.src(['./src/partials/footer.html']), {
+                    starttag: '<!-- inject:footer:{{ext}} -->',
+                    transform: function(filePath, file) {
+                        return file.contents.toString('utf8');
+                    }
+                }))
                 .pipe(htmlmin({
                     collapseWhitespace: true
                 }))
