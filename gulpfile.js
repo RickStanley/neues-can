@@ -3,11 +3,11 @@
     // Use strict em function form
     'use strict';
     // Vhost argument
-    const vArg = (process.argv.indexOf("--vhost") > -1) ? true : false,
+    const vArg = process.argv.indexOf("--vhost"),
         iArg = process.argv.indexOf("--imgdel"),
         srcArg = (process.argv.indexOf("--source") > -1) ? true : false,
         strict = (process.argv.indexOf("--strict") >-1) ? '': ['transform-remove-strict-mode'];
-    if (vArg) {
+    if (vArg > -1) {
         try {
             // Url validation RegExp
             const regExp = /^((https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
@@ -15,7 +15,7 @@
                 var vhost = process.argv[vArg + 1];
             } else {
                 setTimeout(function () {
-                    console.log("Please insert a valid URL to your vhost");
+                    throw new Error("Please insert a valid URL to your vhost");
                 }, 3000);
             }
         } catch (erro) {
