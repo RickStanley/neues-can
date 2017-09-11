@@ -6,7 +6,7 @@
     const vArg = process.argv.indexOf("--vhost"),
         iArg = process.argv.indexOf("--imgdel"),
         srcArg = (process.argv.indexOf("--source") > -1) ? true : false,
-        strict = (process.argv.indexOf("--strict") >-1) ? '': ['transform-remove-strict-mode'];
+        strict = (process.argv.indexOf("--strict") > -1) ? '' : ['transform-remove-strict-mode'];
     if (vArg > -1) {
         try {
             // Url validation RegExp
@@ -26,7 +26,6 @@
         jshint = require('gulp-jshint'),
         del = require('del'),
         uglify = require('gulp-uglify'),
-        header = require('gulp-header'),
         runSequence = require('run-sequence'),
         imagemin = require('gulp-imagemin'),
         sass = require('gulp-sass'),
@@ -47,7 +46,9 @@
         assign = require('lodash.assign'),
         htmlmin = require('gulp-htmlmin'),
         gulpif = require('gulp-if'),
-        inject = require('gulp-inject');
+        inject = require('gulp-inject'),
+        glob = require('glob'),
+        merge = require('merge-stream');
 
     // gulp.watch(); array container, for listeners
     let watcher = [];
@@ -57,7 +58,7 @@
         images: 'src/img/**/*.{png,gif,jpg}',
         styles: 'src/scss/**/*.scss',
         fonts: 'src/fonts/**/*',
-        scripts: 'src/ts/**/*.ts'
+        scripts: 'src/js/**/*.js'
     };
 
     // Destination paths
@@ -68,32 +69,13 @@
         'dist/fonts'
     ];
 
-    // Custom options for BrowserSync
-    const customOptions = {
-        basedir: '.',
-        debug: true,
-        entries: ['src/js/zmaster.js'],
-        cache: {},
-        packageCache: {}
-    };
-
-    // Browserify and watchify assignments
-    const opts = assign({}, watchify.arguments, customOptions);
-
-    const b = watchify(browserify(opts)
-        .transform('babelify', {
-            presets: ['es2015'],
-            plugins: strict
-        })
-    );
-
     // Clears on first run
     gulp.task('clean', () => {
         return del([
             'dist/**/*',
-            (iArg > -1) ? '' : '!dis/img/**/*',
+            (iArg > -1) ? '' : '!dist/img/**/*',
             (iArg > -1) ? '' : '!dist/img/',
-            (iArg > -1) ? '' : '!dist/img/**'
+            (iArg > -1) ? '' : '!dist/img/**',
         ]);
     });
 
@@ -105,77 +87,68 @@
     });
 
     // Copy html(s)
-    gulp.task('copyHtml', () => {
-        watcher[0] = watch(pathsSrc.pages, {
-            ignoreInitial: false
-        }, () => {
-            gulp.src(pathsSrc.pages)
-                .pipe(inject(gulp.src(['./src/partials/head.html']), {
-                    starttag: '<!-- inject:head:{{ext}} -->',
-                    transform: function(filePath, file) {
-                        return file.contents.toString('utf8');
-                    }
-                }))
-                .pipe(inject(gulp.src(['./src/partials/header.html']), {
-                    starttag: '<!-- inject:header:{{ext}} -->',
-                    transform: function(filePath, file) {
-                        return file.contents.toString('utf8');
-                    }
-                }))
-                .pipe(inject(gulp.src(['./src/partials/footer.html']), {
-                    starttag: '<!-- inject:footer:{{ext}} -->',
-                    transform: function(filePath, file) {
-                        return file.contents.toString('utf8');
-                    }
-                }))
-                .pipe(htmlmin({
-                    collapseWhitespace: true
-                }))
-                .pipe(gulp.dest('dist'))
-                .pipe(browserSync.reload({
-                    stream: true
-                }));
-        });
-    });
+    const moveHtml = () => {
+        gulp.src(pathsSrc.pages)
+            .pipe(inject(gulp.src(['src/partials/head.html']), {
+                starttag: '<!-- inject:head:{{ext}} -->',
+                transform: function (filePath, file) {
+                    return file.contents.toString('utf8');
+                }
+            }))
+            .pipe(inject(gulp.src(['src/partials/header.html']), {
+                starttag: '<!-- inject:header:{{ext}} -->',
+                transform: function (filePath, file) {
+                    return file.contents.toString('utf8');
+                }
+            }))
+            .pipe(inject(gulp.src(['src/partials/footer.html']), {
+                starttag: '<!-- inject:footer:{{ext}} -->',
+                transform: function (filePath, file) {
+                    return file.contents.toString('utf8');
+                }
+            }))
+            .pipe(htmlmin({
+                collapseWhitespace: true,
+                removeComments: true
+            }))
+            .pipe(gulp.dest('dist'))
+            .pipe(browserSync.reload({
+                stream: true
+            }));
+    };
+    gulp.task('copyHtml', moveHtml);
 
     // Imagemin Task
-    gulp.task('imagemin', () => {
-        watcher[1] = watch(pathsSrc.images, {
-            ignoreInitial: (iArg > -1) ? false : true
-        }, () => {
-            gulp.src(pathsSrc.images)
-                .pipe(imagemin([
-                    imagemin.gifsicle({
-                        interlaced: true
-                    }),
-                    imagemin.jpegtran({
-                        progressive: true
-                    }),
-                    imagemin.optipng({
-                        optimizationLevel: 5
-                    }),
-                    imagemin.svgo({
-                        plugins: [{
-                            removeViewBox: true
-                        }]
-                    })
-                ], {
-                    verbose: true
-                }))
-                .pipe(gulp.dest(endPoint[0]));
-        });
-    });
+    const imgMini = () => {
+        gulp.src(pathsSrc.images)
+            .pipe(imagemin([
+                imagemin.gifsicle({
+                    interlaced: true
+                }),
+                imagemin.jpegtran({
+                    progressive: true
+                }),
+                imagemin.optipng({
+                    optimizationLevel: 5
+                }),
+                imagemin.svgo({
+                    plugins: [{
+                        removeViewBox: true
+                    }]
+                })
+            ], {
+                verbose: true
+            }))
+            .pipe(gulp.dest(endPoint[0]));
+    };
+    gulp.task('imagemin', imgMini);
     // Browserify task, undertaker: copyHtml task, followed by update (bundle builder) and log
-    gulp.task('browserify', ['copyHtml'], bundle);
-    b.on('update', bundle);
-    b.on('log', console.log);
-
     let swallowError = (error) => {
         try {
             console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
-            chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.loc.line)) + chalk.red(",") + chalk.green(" column: " + (error.loc.column)) + chalk.red(" } \n") +
-            chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
-            chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
+                chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.loc.line)) + chalk.red(",") + chalk.green(" column: " + (error.loc.column)) + chalk.red(" } \n") +
+                chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
+                chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
         } catch (err) {
             console.log(chalk.red(error));
         } finally {
@@ -184,55 +157,72 @@
         // this.emit('end');
     };
 
-    function bundle() {
-        return b.bundle()
-            .on('error', swallowError)
-            .pipe(source('bundle.js'))
-            .pipe(buffer())
-            .pipe(gulpif(srcArg, sourcemaps.init({
-                loadMaps: true
-            })))
-            .pipe(uglify())
+    function bundle(...args) {
+        const file = args[0];
+        const files = glob.sync('src/js/*.js');
+        if (file && typeof file !== 'function') files.push(file);
+        // Custom options for BrowserSync
+        return merge(files.map(function (file) {
+            const customOptions = {
+                basedir: '.',
+                debug: true,
+                entries: file,
+                cache: {},
+                packageCache: {}
+            };
+
+            const opts = assign({}, watchify.arguments, customOptions);
+
+            const b = watchify(browserify(opts)
+                .transform('babelify', {
+                    presets: ['es2015'],
+                    plugins: strict
+                })
+            );
+            b.on('update', bundle);
+            b.on('log', console.log);
+            return b.bundle()
+                .on('error', swallowError)
+                .pipe(source(path.basename(file, '.js') + '.bundle.js'))
+                .pipe(buffer())
+                .pipe(gulpif(srcArg, sourcemaps.init({
+                    loadMaps: true
+                })))
+                .pipe(uglify())
+                .pipe(gulpif(srcArg, sourcemaps.write('./')))
+                .pipe(gulp.dest(endPoint[1]))
+                .pipe(browserSync.reload({
+                    stream: true
+                }));
+        }));
+    }
+
+    gulp.task('browserify', ['copyHtml'], bundle);
+
+    // Sass task
+    const cssMini = () => {
+        gulp.src('src/scss/app.scss')
+            .pipe(sass().on('error', sass.logError))
+            .pipe(gulpif(srcArg, sourcemaps.init()))
+            .pipe(autoprefixer())
+            .pipe(cleanCSS())
             .pipe(rename({
                 suffix: '.min'
             }))
             .pipe(gulpif(srcArg, sourcemaps.write('./')))
-            .pipe(gulp.dest(endPoint[1]))
+            .pipe(gulp.dest(endPoint[2]))
             .pipe(browserSync.reload({
                 stream: true
             }));
-    }
-
-    // Sass task
-    gulp.task('sassmin', () => {
-        watch(pathsSrc.styles, {
-            ignoreInitial: false
-        }, () => {
-            gulp.src('src/scss/app.scss')
-                .pipe(sass().on('error', sass.logError))
-                .pipe(gulpif(srcArg, sourcemaps.init()))
-                .pipe(autoprefixer())
-                .pipe(cleanCSS())
-                .pipe(rename({
-                    suffix: '.min'
-                }))
-                .pipe(gulpif(srcArg, sourcemaps.write('./')))
-                .pipe(gulp.dest(endPoint[2]))
-                .pipe(browserSync.reload({
-                    stream: true
-                }));
-        });
-    });
+    };
+    gulp.task('sassmin', cssMini);
 
     // Fonts
-    gulp.task('fonts', () => {
-        watcher[2] = watch(pathsSrc.fonts, {
-            ignoreInitial: false
-        }, () => {
-            gulp.src(endPoint[3])
-                .pipe(gulp.dest('dist/fonts'));
-        });
-    });
+    const moveFont = () => {
+        gulp.src(endPoint[3])
+            .pipe(gulp.dest('dist/fonts'));
+    };
+    gulp.task('fonts', moveFont);
 
     // Static server
     // and virtual-host
@@ -257,6 +247,24 @@
         watch(pathsSrc.scripts, {
             ignoreInitial: false
         }).on('change', browserSync.reload);
+        watcher[0] = watch(pathsSrc.pages, {
+            ignoreInitial: false
+        }, moveHtml);
+        watcher[1] = watch(pathsSrc.images, {
+            ignoreInitial: (iArg > -1) ? false : true
+        }, imgMini);
+        watcher[2] = watch(pathsSrc.fonts, {
+            ignoreInitial: false
+        }, moveFont);
+        watch(pathsSrc.styles, {
+            ignoreInitial: false
+        }, cssMini);
+
+        watch('src/js/*.js').on('add', (file) => {
+            console.log(`Entry: ${path.basename(file)} added.`);
+            bundle(file);
+        });
+
         watcher.forEach((item, index) => {
             item.on('unlink', (file) => {
                 const sId = file.lastIndexOf('src/') + 4;
