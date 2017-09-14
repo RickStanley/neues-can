@@ -48,13 +48,14 @@
         gulpif = require('gulp-if'),
         inject = require('gulp-inject'),
         glob = require('glob'),
-        merge = require('merge-stream');
+        merge = require('merge-stream'),
+        cache = require('gulp-cached');
 
     // gulp.watch(); array container, for listeners
     let watcher = [];
     // Paths to src directories
     const pathsSrc = {
-        pages: 'src/*.html',
+        pages: ['src/*.html', 'src/partials/*.html'],
         images: 'src/img/**/*.{png,gif,jpg}',
         styles: 'src/scss/**/*.scss',
         fonts: 'src/fonts/**/*',
@@ -89,27 +90,33 @@
     // Copy html(s)
     const moveHtml = () => {
         gulp.src(pathsSrc.pages)
+            .pipe(cache('html-cache'))
             .pipe(inject(gulp.src(['src/partials/head.html']), {
                 starttag: '<!-- inject:head:{{ext}} -->',
+                removeTags: true,
                 transform: function (filePath, file) {
                     return file.contents.toString('utf8');
                 }
             }))
             .pipe(inject(gulp.src(['src/partials/header.html']), {
                 starttag: '<!-- inject:header:{{ext}} -->',
+                removeTags: true,
                 transform: function (filePath, file) {
                     return file.contents.toString('utf8');
                 }
             }))
             .pipe(inject(gulp.src(['src/partials/footer.html']), {
                 starttag: '<!-- inject:footer:{{ext}} -->',
+                removeTags: true,
                 transform: function (filePath, file) {
                     return file.contents.toString('utf8');
                 }
             }))
             .pipe(htmlmin({
                 collapseWhitespace: true,
-                removeComments: true
+                removeComments: true,
+                minifyJS: true,
+                minifyCSS: true
             }))
             .pipe(gulp.dest('dist'))
             .pipe(browserSync.reload({
@@ -121,6 +128,7 @@
     // Imagemin Task
     const imgMini = () => {
         gulp.src(pathsSrc.images)
+            .pipe(cache('img-cache'))
             .pipe(imagemin([
                 imagemin.gifsicle({
                     interlaced: true
@@ -202,6 +210,7 @@
     // Sass task
     const cssMini = () => {
         gulp.src('src/scss/app.scss')
+            .pipe(cache('css-cache'))        
             .pipe(sass().on('error', sass.logError))
             .pipe(gulpif(srcArg, sourcemaps.init()))
             .pipe(autoprefixer())
@@ -245,19 +254,19 @@
     // Watch (out!)
     gulp.task('watch', () => {
         watch(pathsSrc.scripts, {
-            ignoreInitial: false
+            ignoreInitial: true
         }).on('change', browserSync.reload);
         watcher[0] = watch(pathsSrc.pages, {
-            ignoreInitial: false
+            ignoreInitial: true
         }, moveHtml);
         watcher[1] = watch(pathsSrc.images, {
-            ignoreInitial: (iArg > -1) ? false : true
+            ignoreInitial: true
         }, imgMini);
         watcher[2] = watch(pathsSrc.fonts, {
-            ignoreInitial: false
+            ignoreInitial: true
         }, moveFont);
         watch(pathsSrc.styles, {
-            ignoreInitial: false
+            ignoreInitial: true
         }, cssMini);
 
         watch('src/js/*.js').on('add', (file) => {
@@ -279,31 +288,31 @@
                     .catch((reason) => {
                         console.log(chalk.red(`Something went wrong: ${reason}`));
                     });
-                fs.readdir(pathToFileDev, (err, files) => {
-                    if (err) throw err;
-                    let filesExist = false;
-                    return new Promise((resolve, reject) => {
-                        for (let key in files) {
-                            if (files.hasOwnProperty(key)) {
-                                if ((path.extname(files[key]) === '') === false) filesExist = true;
+                    fs.readdir(pathToFileDev, (err, files) => {
+                        if (err) throw err;
+                        let filesExist = false;
+                        return new Promise((resolve, reject) => {
+                            for (let key in files) {
+                                if (files.hasOwnProperty(key)) {
+                                    if ((path.extname(files[key]) === '') === false) filesExist = true;
+                                }
                             }
-                        }
-                        resolve(filesExist);
-                    }).then((exist) => {
-                        if (!exist) {
-                            pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
-                            del(pathToFileDist);
-                        }
-                    }, (reason) => {
-                        console.log(`Something went wrong trying to read dir: ${reason}`);
+                            resolve(filesExist);
+                        }).then((exist) => {
+                            if (!exist) {
+                                pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
+                                del(pathToFileDist);
+                            }
+                        }, (reason) => {
+                            console.log(`Something went wrong trying to read dir: ${reason}`);
+                        });
                     });
-                });
             });
         });
     });
 
     // Default (gulp [no_args])
     gulp.task('default', (cb) => {
-        return runSequence('clean', ['browserify', 'jshint', 'sassmin', 'imagemin', 'fonts', 'watch', 'browser-sync'], cb);
+        return runSequence('clean', ['watch', 'browser-sync','browserify', 'jshint', 'sassmin', 'imagemin', 'fonts'], cb);
     });
 }());
