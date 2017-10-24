@@ -20,7 +20,6 @@
         browserify = require('browserify'),
         source = require('vinyl-source-stream'),
         sourcemaps = require('gulp-sourcemaps'),
-        gutil = require('gulp-util'),
         buffer = require('vinyl-buffer'),
         watchify = require('watchify'),
         assign = require('lodash.assign'),
@@ -28,7 +27,6 @@
         gulpif = require('gulp-if'),
         inject = require('gulp-inject'),
         glob = require('glob'),
-        merge = require('merge-stream'),
         cache = require('gulp-cached');
 
     // Vhost argument
