@@ -29,12 +29,12 @@
         glob = require('glob'),
         cache = require('gulp-cached');
 
-    // Vhost argument
+    // Possible arguments
     const VHost = process.argv.indexOf("--vhost"),
         deleteImgs = (process.argv.indexOf("--imgdel") > -1) ? true : false,
         sourceMaps = (process.argv.indexOf("--source") > -1) ? true : false,
         strict = (process.argv.indexOf("--strict") > -1) ? '' : ['transform-remove-strict-mode'],
-        construir = (process.argv.indexOf("build") > -1) ? true : false,
+        build = (process.argv.indexOf("build") > -1) ? true : false,
         justBundle = (process.argv.indexOf("--nowatch") > -1) ? true : false;
 
     // Test if vhost argument has been passed
@@ -74,7 +74,6 @@
         'dist/fonts'
     ];
 
-    // Browserify task, undertaker: build-html task, followed by update (bundle builder) and log
     // swallowError prevents stream break if an error occurs
     let swallowError = (error) => {
         try {
@@ -197,7 +196,7 @@
 
             const opts = assign({}, watchify.arguments, customOptions);
 
-            const b = (construir || justBundle) ? browserify(opts)
+            const b = (build || justBundle) ? browserify(opts)
                 .transform('babelify', {
                     presets: ['es2015'],
                     plugins: strict
@@ -292,7 +291,7 @@
     gulp.task('default', (cb) => {
         setBundles();
         let tasks = [];
-        tasks = ['browserify', 'build-html', 'sassmin', 'fonts', 'browser-sync','watch'];
+        tasks = ['browserify', 'build-html', 'sassmin', 'fonts', 'browser-sync', 'watch'];
         if (deleteImgs) tasks.push('imagemin');
         return runSequence('clean', tasks, cb);
     });
@@ -318,37 +317,43 @@
         // If something is deleted in src, its respective file is deleted in dist
         watcher.forEach((item, index) => {
             item.on('unlink', (file) => {
-                const sId = file.lastIndexOf('src/') + 4;
+                const isWind = /^win/.test(process.platform);
+                let sId = 0;
+                sId = (isWind) ? file.lastIndexOf('src\\') + 4 : file.lastIndexOf('src/') + 4;
                 let fileName = path.basename(file),
-                    pathToFileDist = file.replace(file.substring(0, sId), "dist/"),
-                    pathToFileDev = file.substring(0, file.lastIndexOf("/"));
+                    pathToFileDist = file.replace(file.substring(0, sId), (isWind) ? "dist\\" : "dist/"),
+                    pathToFileSrc = file;
                 console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /src/. Deleting corresponding file on /dist/."));
                 del([pathToFileDist])
                     .then((paths) => {
                         console.log(chalk.blue(`Deleted file(s): ${paths.join('\n')}`));
+                        // this reads the directory in question and checks if it is empty, if yes then the folder is deleted
+                        pathToFileDist = pathToFileDist.substring(pathToFileDist.lastIndexOf((isWind) ? '\\' : '/'), 0);
+                        fs.readdir(pathToFileDist, (err, files) => {
+                            if (err) throw err;
+                            let filesExist = false;
+                            return new Promise((resolve, reject) => {
+                                for (let key in files) {
+                                    if (files.hasOwnProperty(key)) {
+                                        if ((path.extname(files[key]) === '') === false) filesExist = true;
+                                    }
+                                }
+                                console.log('files: ', files);
+                                console.log('filesExist: ', filesExist);
+                                resolve(filesExist);
+                            }).then((exist) => {
+                                if (!exist) {
+                                    // pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
+                                    del(pathToFileDist);
+                                }
+                            }, (reason) => {
+                                console.log(`Something went wrong trying to read dir: ${reason}`);
+                            });
+                        });
                     })
                     .catch((reason) => {
                         console.log(chalk.red(`Something went wrong: ${reason}`));
                     });
-                fs.readdir(pathToFileDev, (err, files) => {
-                    if (err) throw err;
-                    let filesExist = false;
-                    return new Promise((resolve, reject) => {
-                        for (let key in files) {
-                            if (files.hasOwnProperty(key)) {
-                                if ((path.extname(files[key]) === '') === false) filesExist = true;
-                            }
-                        }
-                        resolve(filesExist);
-                    }).then((exist) => {
-                        if (!exist) {
-                            pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
-                            del(pathToFileDist);
-                        }
-                    }, (reason) => {
-                        console.log(`Something went wrong trying to read dir: ${reason}`);
-                    });
-                });
             });
         });
 
