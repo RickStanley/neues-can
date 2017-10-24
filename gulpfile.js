@@ -338,8 +338,6 @@
                                         if ((path.extname(files[key]) === '') === false) filesExist = true;
                                     }
                                 }
-                                console.log('files: ', files);
-                                console.log('filesExist: ', filesExist);
                                 resolve(filesExist);
                             }).then((exist) => {
                                 if (!exist) {
