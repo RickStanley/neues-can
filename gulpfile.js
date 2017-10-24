@@ -2,28 +2,8 @@
 (function () {
     // Use strict em function form
     'use strict';
-    // Vhost argument
-    const vArg = process.argv.indexOf("--vhost"),
-        iArg = process.argv.indexOf("--imgdel"),
-        srcArg = (process.argv.indexOf("--source") > -1) ? true : false,
-        strict = (process.argv.indexOf("--strict") > -1) ? '' : ['transform-remove-strict-mode'];
-    if (vArg > -1) {
-        try {
-            // Url validation RegExp
-            const regExp = /^((https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
-            if (regExp.test(process.argv[vArg + 1])) {
-                var vhost = process.argv[vArg + 1] + (process.env.PWD).substring((process.env.PWD).lastIndexOf('/')) + '/';
-            } else {
-                setTimeout(function () {
-                    throw new Error("Please insert a valid URL to your vhost");
-                }, 3000);
-            }
-        } catch (erro) {
-            console.log(`Expected one paremeter: ${erro}`);
-        }
-    }
+    // All the necessary modules for gulp
     const gulp = require('gulp'),
-        jshint = require('gulp-jshint'),
         del = require('del'),
         uglify = require('gulp-uglify'),
         runSequence = require('run-sequence'),
@@ -51,12 +31,38 @@
         merge = require('merge-stream'),
         cache = require('gulp-cached');
 
-    // gulp.watch(); array container, for listeners
+    // Vhost argument
+    const VHost = process.argv.indexOf("--vhost"),
+        deleteImgs = (process.argv.indexOf("--imgdel") > -1) ? true : false,
+        sourceMaps = (process.argv.indexOf("--source") > -1) ? true : false,
+        strict = (process.argv.indexOf("--strict") > -1) ? '' : ['transform-remove-strict-mode'],
+        construir = (process.argv.indexOf("build") > -1) ? true : false,
+        justBundle = (process.argv.indexOf("--nowatch") > -1) ? true : false;
+
+    // Test if vhost argument has been passed
+    if (VHost > -1) {
+        try {
+            // RegExp to test if it is a valid host url
+            const regExp = /^((https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
+            if (regExp.test(process.argv[VHost + 1])) {
+                var vhostUrl = process.argv[VHost + 1] + (process.env.PWD).substring((process.env.PWD).lastIndexOf('/')) + '/';
+            } else {
+                setTimeout(function () {
+                    throw new Error("Please insert a valid URL to your vhost");
+                }, 3000);
+            }
+        } catch (erro) {
+            console.log(`Expected one paremeter: ${erro}`);
+        }
+    }
+
+    // watch array, for events (listener)
     let watcher = [];
+
     // Paths to src directories
     const pathsSrc = {
         pages: ['src/*.html', 'src/partials/*.html'],
-        images: 'src/img/**/*.{png,gif,jpg}',
+        images: 'src/img/**/*.{png,gif,jpg,jpeg,svg}',
         styles: 'src/scss/**/*.scss',
         fonts: 'src/fonts/**/*',
         scripts: 'src/js/**/*.js'
@@ -70,27 +76,32 @@
         'dist/fonts'
     ];
 
-    // Clears on first run
-    gulp.task('clean', () => {
-        return del([
-            'dist/**/*',
-            (iArg > -1) ? '' : '!dist/img/**/*',
-            (iArg > -1) ? '' : '!dist/img/',
-            (iArg > -1) ? '' : '!dist/img/**',
-        ]);
-    });
+    // Browserify task, undertaker: build-html task, followed by update (bundle builder) and log
+    // swallowError prevents stream break if an error occurs
+    let swallowError = (error) => {
+        try {
+            console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
+                chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.loc.line)) + chalk.red(",") + chalk.green(" column: " + (error.loc.column)) + chalk.red(" } \n") +
+                chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
+                chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
+        } catch (err) {
+            console.log(chalk.red(error));
+        } finally {
+            console.log("An undefined error has ocurred after trying to bundle JS");
+        }
+    };
 
-    // JSHint
-    gulp.task('jshint', () => {
-        return gulp.src('src/js/**/*.js')
-            .pipe(jshint())
-            .pipe(jshint.reporter('default'));
-    });
+    // Tasks functions
 
-    // Copy html(s)
-    const moveHtml = () => {
-        gulp.src(pathsSrc.pages)
-            .pipe(cache('html-cache'))
+    // Injects partials and src -> dist
+    const buildHtml = (archive) => {
+        let isPartial = false;
+        // Checking if it is a partial to prevent caching
+        if (typeof archive.base !== 'undefined' && typeof archive.base !== null) {
+            if ((archive.base).substring((archive.base).lastIndexOf('/') + 1) === 'partials') isPartial = true;
+        }
+        gulp.src(pathsSrc.pages[0])
+            .pipe(gulpif(!isPartial, cache('html-cache')))
             .pipe(inject(gulp.src(['src/partials/head.html']), {
                 starttag: '<!-- inject:head:{{ext}} -->',
                 removeTags: true,
@@ -123,9 +134,8 @@
                 stream: true
             }));
     };
-    gulp.task('copyHtml', moveHtml);
 
-    // Imagemin Task
+    // Minify images
     const imgMini = () => {
         gulp.src(pathsSrc.images)
             .pipe(cache('img-cache'))
@@ -149,28 +159,36 @@
             }))
             .pipe(gulp.dest(endPoint[0]));
     };
-    gulp.task('imagemin', imgMini);
-    // Browserify task, undertaker: copyHtml task, followed by update (bundle builder) and log
-    let swallowError = (error) => {
-        try {
-            console.log(chalk.red("––––––––––––––––––––––––––––––––– Error ––––––––––––––––––––––––––––––––– \n") +
-                chalk.red((error.name) + ": Position {") + chalk.blue(" line: " + (error.loc.line)) + chalk.red(",") + chalk.green(" column: " + (error.loc.column)) + chalk.red(" } \n") +
-                chalk.blue(error.codeFrame) + chalk.magenta("\n Path: " + (error.message)) +
-                chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
-        } catch (err) {
-            console.log(chalk.red(error));
-        } finally {
-            console.log("An undefined error has ocurred after trying to bundle JS");
-        }
-        // this.emit('end');
+
+    // Compile to css and minify
+    const cssMini = () => {
+        gulp.src('src/scss/app.scss')
+            .pipe(cache('css-cache'))
+            .pipe(sass().on('error', sass.logError))
+            .pipe(gulpif(sourceMaps, sourcemaps.init()))
+            .pipe(autoprefixer())
+            .pipe(cleanCSS())
+            .pipe(rename({
+                suffix: '.min'
+            }))
+            .pipe(gulpif(sourceMaps, sourcemaps.write('./')))
+            .pipe(gulp.dest(endPoint[2]))
+            .pipe(browserSync.reload({
+                stream: true
+            }));
     };
 
-    function bundle(...args) {
-        const file = args[0];
+    // Move fonts src -> dist
+    const moveFont = () => {
+        gulp.src(endPoint[3])
+            .pipe(gulp.dest('dist/fonts'));
+    };
+
+    var bundler = [];
+    // Set javascript entries
+    const setBundles = () => {
         const files = glob.sync('src/js/*.js');
-        if (file && typeof file !== 'function') files.push(file);
-        // Custom options for BrowserSync
-        return merge(files.map(function (file) {
+        files.map(function (file) {
             const customOptions = {
                 basedir: '.',
                 debug: true,
@@ -181,62 +199,75 @@
 
             const opts = assign({}, watchify.arguments, customOptions);
 
-            const b = watchify(browserify(opts)
+            const b = (construir || justBundle) ? browserify(opts)
                 .transform('babelify', {
                     presets: ['es2015'],
                     plugins: strict
-                })
-            );
+                }) :
+                watchify(browserify(opts)
+                    .transform('babelify', {
+                        presets: ['es2015'],
+                        plugins: strict
+                    })
+                );
+            bundler.push({
+                b: b,
+                fileName: path.basename(file, '.js')
+            });
             b.on('update', bundle);
             b.on('log', console.log);
-            return b.bundle()
+        });
+    };
+
+    // Building and browseryfying entries
+    function bundle() {
+        return bundler.forEach(function (element) {
+            return (element.b).bundle()
                 .on('error', swallowError)
-                .pipe(source(path.basename(file, '.js') + '.bundle.js'))
+                .pipe(source(element.fileName + '.bundle.js'))
                 .pipe(buffer())
-                .pipe(gulpif(srcArg, sourcemaps.init({
+                .pipe(gulpif(sourceMaps, sourcemaps.init({
                     loadMaps: true
                 })))
                 .pipe(uglify())
-                .pipe(gulpif(srcArg, sourcemaps.write('./')))
+                .on('error', swallowError)
+                .pipe(gulpif(sourceMaps, sourcemaps.write('./')))
                 .pipe(gulp.dest(endPoint[1]))
                 .pipe(browserSync.reload({
                     stream: true
                 }));
-        }));
+        });
     }
 
-    gulp.task('browserify', ['copyHtml'], bundle);
+    // Clear dist
+    gulp.task('clean', () => {
+        return del([
+            'dist/**/*',
+            (deleteImgs) ? '' : '!dist/img/**/*',
+            (deleteImgs) ? '' : '!dist/img/',
+            (deleteImgs) ? '' : '!dist/img/**',
+        ]);
+    });
+
+    // Build html
+    gulp.task('build-html', buildHtml);
+
+    // Imagemin Task
+    gulp.task('imagemin', imgMini);
+
+    // Browserify task, undertaker: build-html task, followed by update (bundle builder) and log        
+    gulp.task('browserify', bundle);
 
     // Sass task
-    const cssMini = () => {
-        gulp.src('src/scss/app.scss')
-            .pipe(cache('css-cache'))        
-            .pipe(sass().on('error', sass.logError))
-            .pipe(gulpif(srcArg, sourcemaps.init()))
-            .pipe(autoprefixer())
-            .pipe(cleanCSS())
-            .pipe(rename({
-                suffix: '.min'
-            }))
-            .pipe(gulpif(srcArg, sourcemaps.write('./')))
-            .pipe(gulp.dest(endPoint[2]))
-            .pipe(browserSync.reload({
-                stream: true
-            }));
-    };
     gulp.task('sassmin', cssMini);
 
     // Fonts
-    const moveFont = () => {
-        gulp.src(endPoint[3])
-            .pipe(gulp.dest('dist/fonts'));
-    };
     gulp.task('fonts', moveFont);
 
     // Static server
     // and virtual-host
     gulp.task('browser-sync', () => {
-        if (typeof vhost === 'undefined' || vhost === '' || vhost === null) {
+        if (typeof vhostUrl === 'undefined' || vhostUrl === '' || vhostUrl === null) {
             browserSync.init({
                 server: {
                     baseDir: "./dist"
@@ -245,20 +276,37 @@
             });
         } else {
             browserSync.init({
-                proxy: vhost,
+                proxy: vhostUrl,
                 reloadDelay: 1000
             });
         }
     });
 
-    // Watch (out!)
+    // Just build
+    gulp.task('build', (cb) => {
+        setBundles();
+        let tasks = [];
+        tasks = ['browserify', 'build-html', 'sassmin', 'imagemin', 'fonts'];
+        return runSequence('clean', tasks, cb);
+    });
+
+    // Default (gulp [no_args])
+    gulp.task('default', (cb) => {
+        setBundles();
+        let tasks = [];
+        tasks = ['browserify', 'build-html', 'sassmin', 'fonts', 'browser-sync','watch'];
+        if (deleteImgs) tasks.push('imagemin');
+        return runSequence('clean', tasks, cb);
+    });
+
+    // Watch
     gulp.task('watch', () => {
         watch(pathsSrc.scripts, {
             ignoreInitial: true
         }).on('change', browserSync.reload);
         watcher[0] = watch(pathsSrc.pages, {
             ignoreInitial: true
-        }, moveHtml);
+        }, buildHtml);
         watcher[1] = watch(pathsSrc.images, {
             ignoreInitial: true
         }, imgMini);
@@ -269,11 +317,7 @@
             ignoreInitial: true
         }, cssMini);
 
-        watch('src/js/*.js').on('add', (file) => {
-            console.log(`Entry: ${path.basename(file)} added.`);
-            bundle(file);
-        });
-
+        // If something is deleted in src, its respective file is deleted in dist
         watcher.forEach((item, index) => {
             item.on('unlink', (file) => {
                 const sId = file.lastIndexOf('src/') + 4;
@@ -288,31 +332,32 @@
                     .catch((reason) => {
                         console.log(chalk.red(`Something went wrong: ${reason}`));
                     });
-                    fs.readdir(pathToFileDev, (err, files) => {
-                        if (err) throw err;
-                        let filesExist = false;
-                        return new Promise((resolve, reject) => {
-                            for (let key in files) {
-                                if (files.hasOwnProperty(key)) {
-                                    if ((path.extname(files[key]) === '') === false) filesExist = true;
-                                }
+                fs.readdir(pathToFileDev, (err, files) => {
+                    if (err) throw err;
+                    let filesExist = false;
+                    return new Promise((resolve, reject) => {
+                        for (let key in files) {
+                            if (files.hasOwnProperty(key)) {
+                                if ((path.extname(files[key]) === '') === false) filesExist = true;
                             }
-                            resolve(filesExist);
-                        }).then((exist) => {
-                            if (!exist) {
-                                pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
-                                del(pathToFileDist);
-                            }
-                        }, (reason) => {
-                            console.log(`Something went wrong trying to read dir: ${reason}`);
-                        });
+                        }
+                        resolve(filesExist);
+                    }).then((exist) => {
+                        if (!exist) {
+                            pathToFileDist = pathToFileDist.substring(0, pathToFileDist.lastIndexOf("/"));
+                            del(pathToFileDist);
+                        }
+                    }, (reason) => {
+                        console.log(`Something went wrong trying to read dir: ${reason}`);
                     });
+                });
             });
         });
-    });
 
-    // Default (gulp [no_args])
-    gulp.task('default', (cb) => {
-        return runSequence('clean', ['watch', 'browser-sync','browserify', 'jshint', 'sassmin', 'imagemin', 'fonts'], cb);
+        // For future use
+        // watch('src/js/*.js').on('add', (file) => {
+        //     console.log(`Entry: ${path.basename(file)} added.`);
+        //     bundle(file);
+        // });
     });
 }());

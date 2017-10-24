@@ -2537,16 +2537,6 @@ gulp-inject@^4.2.0:
     stream-to-array "^2.3.0"
     through2 "^2.0.1"
 
-gulp-jshint@^2.0.0:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/gulp-jshint/-/gulp-jshint-2.0.4.tgz#f382b18564b1072def0c9aaf753c146dadb4f0e8"
-  dependencies:
-    gulp-util "^3.0.0"
-    lodash "^4.12.0"
-    minimatch "^3.0.3"
-    rcloader "^0.2.2"
-    through2 "^2.0.0"
-
 gulp-match@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/gulp-match/-/gulp-match-1.0.3.tgz#91c7c0d7f29becd6606d57d80a7f8776a87aba8e"
@@ -3466,10 +3456,6 @@ lodash.isfinite@^3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/lodash.isfinite/-/lodash.isfinite-3.3.2.tgz#fb89b65a9a80281833f0b7478b3a5104f898ebb3"
 
-lodash.isobject@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/lodash.isobject/-/lodash.isobject-3.0.2.tgz#3c8fb8d5b5bf4bf90ae06e14f2a530a4ed935e1d"
-
 lodash.isplainobject@^4.0.4:
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz#7c526a52d89b45c45cc690b88163be0497f550cb"
@@ -3493,10 +3479,6 @@ lodash.mapvalues@^4.4.0:
 lodash.memoize@~3.0.3:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-3.0.4.tgz#2dcbd2c287cbc0a55cc42328bd0c736150d53e3f"
-
-lodash.merge@^4.6.0:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.0.tgz#69884ba144ac33fe699737a6086deffadd0f89c5"
 
 lodash.mergewith@^4.6.0:
   version "4.6.0"
@@ -3535,7 +3517,7 @@ lodash@^3.10.1:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
-lodash@^4.0.0, lodash@^4.12.0, lodash@^4.13.1, lodash@^4.17.4, lodash@~4.17.4:
+lodash@^4.0.0, lodash@^4.13.1, lodash@^4.17.4, lodash@~4.17.4:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -4401,21 +4383,6 @@ rc@^1.1.2, rc@^1.1.7:
     ini "~1.3.0"
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
-
-rcfinder@^0.1.6:
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/rcfinder/-/rcfinder-0.1.9.tgz#f3e80f387ddf9ae80ae30a4100329642eae81115"
-  dependencies:
-    lodash.clonedeep "^4.3.2"
-
-rcloader@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/rcloader/-/rcloader-0.2.2.tgz#58d2298b462d0b9bfd2133d2a1ec74fbd705c717"
-  dependencies:
-    lodash.assign "^4.2.0"
-    lodash.isobject "^3.0.2"
-    lodash.merge "^4.6.0"
-    rcfinder "^0.1.6"
 
 read-all-stream@^3.0.0:
   version "3.1.0"
