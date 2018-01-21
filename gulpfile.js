@@ -23,7 +23,8 @@
     const options = {
         env: {
             isProduction: isProduction,
-            vhost: argv.vhost
+            vhost: argv.vhost,
+            justbuild: (argv._.indexOf('build') > -1) ? true : false
         },
         dest: {
             html: 'app/',

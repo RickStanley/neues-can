@@ -26,6 +26,7 @@ module.exports = function (gulp, plugins) {
                 presets: ['es2015'],
                 plugins: ['transform-remove-strict-mode']
             });
+        b.on('log', console.log);
         b.bundle()
             .on('error', gulp.opts.swallowError)
             .pipe(source(path.basename(file, '.js') + '.bundle.js'))
