@@ -87,6 +87,9 @@
     // Browserify task, undertaker: build-html task, followed by update (bundle builder) and log        
     gulp.task('browserify', getTask('bundle'));
 
+    // Vendors
+    gulp.task('vendors', getTask('vendors'));
+
     // // Sass task
     gulp.task('sassmin', getTask('scss'));
 
@@ -99,7 +102,7 @@
     // Just build
     gulp.task('build', (cb) => {
         let tasks = [];
-        tasks = ['browserify', 'build-html', 'sassmin', 'imagemin', 'fonts'];
+        tasks = ['vendors', 'browserify', 'build-html', 'sassmin', 'imagemin', 'fonts'];
         return runSequence('clean', tasks, cb);
     });
 
@@ -149,7 +152,7 @@
     // Default (gulp [no_args])
     gulp.task('default', (cb) => {
         let tasks = [];
-        tasks = ['browserify', 'build-html', 'sassmin', 'imagemin', 'fonts', 'browser-sync', 'watch', 'dev'];
+        tasks = ['vendors', 'browserify', 'build-html', 'sassmin', 'imagemin', 'fonts', 'browser-sync', 'watch', 'dev'];
         return runSequence('clean', tasks, cb);
     });
 
