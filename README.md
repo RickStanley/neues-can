@@ -12,7 +12,7 @@ npm i -g gulp
 gulp
 ```
 ## Tasks
-- **clean**: clear app/ directory, except for app/img (you can use the `--imgdel` argument to clear this one too)
+- **clean**: clear app/ directory, except for app/img
 - **build-html**: partials injection into html, minfication and copy from src/*.html to app/
 - **imagemin**: image minification and copy from src/img/* to app/img/
 - **browserify**: searchs for entries (src/js/*.js), watch for modifications, bundles (browserify, babelify and minify) and copy from src/js/{entries}.js to app/js/
@@ -24,3 +24,5 @@ gulp
 |----------|----------------------------------------------------------
 | --vhost="{vhost}"  | path/to/vhost/and/project-index (e.g.: local.dev/project)
 | -p | bundles in production mode
+| default | watches for modifications and serve
+| build | just builds, usage preferred with argv `-p` like so: `gulp build -p`
