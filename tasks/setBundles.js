@@ -1,7 +1,7 @@
 const glob = require('glob'),
     browserify = require('browserify'),
     watchify = require('watchify')
-assign = require('lodash.assign'),
+    assign = require('lodash.assign'),
     path = require('path'),
     buffer = require('vinyl-buffer'),
     source = require('vinyl-source-stream');
@@ -31,11 +31,17 @@ module.exports = function (gulp, plugins) {
             .on('error', gulp.opts.swallowError)
             .pipe(source(path.basename(file, '.js') + '.bundle.js'))
             .pipe(buffer())
+            .pipe(plugins.hash())
             .pipe(plugins.if(!gulp.opts.env.isProduction, plugins.sourcemaps.init()))
             .pipe(plugins.uglify())
             .on('error', gulp.opts.swallowError)
             .pipe(plugins.if(!gulp.opts.env.isProduction, plugins.sourcemaps.write('./')))
-            .pipe(gulp.dest(gulp.opts.dest.js));
+            .pipe(gulp.dest(gulp.opts.dest.js))
+            .pipe(plugins.hash.manifest('app/assests.json', {
+                deletOld: true,
+                sourceDir: __dirname + '/app/js'
+            }))
+            .pipe(gulp.dest('.'));
         bundlers.push({
             b: b,
             fileName: path.basename(file, '.js')

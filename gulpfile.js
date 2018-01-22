@@ -106,6 +106,32 @@
         return runSequence('clean', tasks, cb);
     });
 
+     // Default (gulp [no_args])
+     gulp.task('default', (cb) => {
+        let tasks = [];
+        tasks = ['vendors', 'browserify', 'build-html', 'sassmin', 'imagemin', 'fonts', 'browser-sync', 'watch', 'dev'];
+        return runSequence('clean', tasks, cb);
+    });
+
+    // Watch
+    gulp.task('watch', () => {
+        watch(options.src.js, {
+            ignoreInitial: true
+        });
+        watchers[0] = watch([options.src.html.pages, options.src.html.partials.path], {
+            ignoreInitial: true
+        }, getTask('html'));
+        watchers[1] = watch(options.src.images, {
+            ignoreInitial: true
+        }, getTask('images'));
+        watchers[2] = watch(options.src.fonts, {
+            ignoreInitial: true
+        }, getTask('fonts'));
+        watch(options.src.css.includes, {
+            ignoreInitial: true
+        }, getTask('scss'));
+    });
+
     gulp.task('dev', () => {
         watchers.forEach((item, index) => {
             // item.on('change', browserSync.reload);
@@ -147,31 +173,5 @@
                     });
             });
         });
-    });
-
-    // Default (gulp [no_args])
-    gulp.task('default', (cb) => {
-        let tasks = [];
-        tasks = ['vendors', 'browserify', 'build-html', 'sassmin', 'imagemin', 'fonts', 'browser-sync', 'watch', 'dev'];
-        return runSequence('clean', tasks, cb);
-    });
-
-    // Watch
-    gulp.task('watch', () => {
-        watch(options.src.js, {
-            ignoreInitial: true
-        });
-        watchers[0] = watch([options.src.html.pages, options.src.html.partials.path], {
-            ignoreInitial: true
-        }, getTask('html'));
-        watchers[1] = watch(options.src.images, {
-            ignoreInitial: true
-        }, getTask('images'));
-        watchers[2] = watch(options.src.fonts, {
-            ignoreInitial: true
-        }, getTask('fonts'));
-        watch(options.src.css.includes, {
-            ignoreInitial: true
-        }, getTask('scss'));
     });
 }());

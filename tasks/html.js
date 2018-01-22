@@ -1,4 +1,9 @@
 module.exports = function (gulp, plugins, archive) {
+    const opts = {
+        algorithm: 'sha1',
+        hashLength: 40,
+        template: '<%= name %><%= ext %>?hash=<%= hash %>'
+    };
     return function () {
         let stream = gulp.src(gulp.opts.src.html.pages);
         (gulp.opts.src.html.partials.names).forEach(element => {
@@ -11,6 +16,7 @@ module.exports = function (gulp, plugins, archive) {
             }));
         });
         stream
+            .pipe(plugins.inject(gulp.src(['app/js/*.js', 'app/css/*.css'], {read: false}).pipe(plugins.hash(opts)), {ignorePath: 'app'}))
             .pipe(plugins.htmlmin({
                 collapseWhitespace: true,
                 removeComments: true,

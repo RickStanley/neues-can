@@ -39,6 +39,7 @@
     "gulp-cached": "^1.1.1",
     "gulp-clean-css": "^3.4.2",
     "gulp-concat": "^2.6.1",
+    "gulp-hash": "^4.2.2",
     "gulp-htmlmin": "^3.0.0",
     "gulp-if": "^2.0.2",
     "gulp-imagemin": "^3.3.0",
@@ -53,6 +54,7 @@
     "lodash.assign": "^4.2.0",
     "minimist": "^1.2.0",
     "run-sequence": "^1.1.5",
+    "stream-series": "^0.1.1",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.9.0"
