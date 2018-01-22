@@ -26,3 +26,7 @@ gulp
 | -p | bundles in production mode
 | default | watches for modifications and serve
 | build | just builds, usage preferred with argv `-p` like so: `gulp build -p`
+
+### TODO
+ - browserSync: config reload on change for every task;
+ - build-html: chain undertaker tasks for proper injection of js/css (currently, you need to run `gulp build-html` after `gulp build`);
