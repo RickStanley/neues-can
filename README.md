@@ -29,4 +29,4 @@ gulp
 
 ### TODO
  - browserSync: config reload on change for every task;
- - build-html: chain undertaker tasks for proper injection of js/css (currently, you need to run `gulp build-html` after `gulp build`);
+ - ~~build-html: chain undertaker tasks for proper injection of js/css (currently, you need to run `gulp build-html` after `gulp build`);~~

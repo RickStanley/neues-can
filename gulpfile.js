@@ -102,15 +102,17 @@
     // Just build
     gulp.task('build', (cb) => {
         let tasks = [];
-        tasks = ['vendors', 'browserify', 'build-html', 'sassmin', 'imagemin', 'fonts'];
-        return runSequence('clean', tasks, cb);
+        tasks = ['vendors', 'browserify', 'sassmin', 'imagemin', 'fonts'];
+        runSequence('clean', tasks);
+        return runSequence('build-html', cb);
     });
 
      // Default (gulp [no_args])
      gulp.task('default', (cb) => {
         let tasks = [];
-        tasks = ['vendors', 'browserify', 'build-html', 'sassmin', 'imagemin', 'fonts', 'browser-sync', 'watch', 'dev'];
-        return runSequence('clean', tasks, cb);
+        tasks = ['vendors', 'browserify', 'sassmin', 'imagemin', 'fonts', 'browser-sync', 'watch', 'dev'];
+        runSequence('clean', tasks);
+        return runSequence('build-html', cb);
     });
 
     // Watch
