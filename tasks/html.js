@@ -16,7 +16,17 @@ module.exports = function (gulp, plugins, archive) {
             }));
         });
         stream
-            .pipe(plugins.inject(gulp.src(['app/js/*.js', 'app/css/*.css'], {read: false}).pipe(plugins.hash(opts)), {ignorePath: 'app'}))
+            .pipe(plugins.inject(gulp.src(['!app/js/vendors.js', 'app/js/*.js', 'app/css/*.css'], {
+                read: false
+            }).pipe(plugins.if(gulp.opts.env.isProduction, plugins.hash(opts))), {
+                ignorePath: 'app'
+            }))
+            .pipe(plugins.inject(gulp.src('app/js/vendors.js', {
+                read: false
+            }), {
+                name: 'vendors',
+                ignorePath: 'app'
+            }))
             .pipe(plugins.htmlmin({
                 collapseWhitespace: true,
                 removeComments: true,

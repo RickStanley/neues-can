@@ -8,7 +8,7 @@ module.exports = function (gulp, plugins) {
             .pipe(plugins.rename({
                 suffix: '.min'
             }))
-            .pipe(plugins.hash())
+            .pipe(plugins.if(gulp.opts.env.isProduction, plugins.hash()))
             .pipe(plugins.if(!gulp.opts.env.isProduction, plugins.sourcemaps.write('./')))
             .pipe(gulp.dest(gulp.opts.dest.css))
             .pipe(plugins.hash.manifest('app/assests.json', {

@@ -13,7 +13,7 @@ module.exports = function (gulp, plugins) {
                     .on('error', gulp.opts.swallowError)
                     .pipe(source(element.fileName + '.bundle.js'))
                     .pipe(buffer())
-                    .pipe(plugins.hash())
+                    .pipe(plugins.if(gulp.opts.env.isProduction, plugins.hash()))
                     .pipe(plugins.if(!gulp.opts.env.isProduction, plugins.sourcemaps.init()))
                     .pipe(plugins.uglify())
                     .on('error', gulp.opts.swallowError)
