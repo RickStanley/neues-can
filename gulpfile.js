@@ -1,6 +1,6 @@
 //jshint esversion: 6
 (function () {
-    // !!!!!!!!!!!!!
+    // !!!!!!!!!!!!! README
     /**
      *   ## Tasks
      *   - clean: clear dist/ directory, except for dist/img
@@ -10,18 +10,32 @@
      *   - sass: scss compilation and transformation to css, copy from src/sass/app.scss (main) to dist/css/
      *   - fonts: copy from src/fonts to dist/fonts/
      *   - dev: watches for deleted files and unlink them in their corresponding path in dist/
-     *   ## Gulp arguments
+     *   - vendors: bundles and unglify all vendors from src/js/vendors/ folder, if the folders doesn't exists, just create it
+     * 
+     *   ## General:
+     *   You can use ES6 in this project.
+     * 
+     *   ## About partials:
+     *   If you create a new partial, you must declare its html filename in the partials array of names bellow
+     * 
+     *   ## About vendors/external libs:
+     *   - vendors: all vendors shall be put in src/js/vendors/ folder to be bundled together as one (note: the bundle follows the alphabetic order)
+     * 
+     *   ## Gulp general arguments
      *   | argument           | Description                                              
      *   |--------------------|----------------------------------------------------------
      *   | --vhost="{vhost}"  | path/to/vhost/and/project-index (e.g.: local.dev/project)
-     *   | -p                 | bundles in production mode
+     *   | -p                 | declares ENV in production mode, usage preferred with task `build` like so: `gulp build -p`
      *   | default            | watches for modifications and serve
      *   | build              | just builds, usage preferred with argv `-p` like so: `gulp build -p`
      */
-    // !!!!!!!!!!!!!
+    // !!!!!!!!!!!!! REDME
+
     // Use strict em function form
     'use strict';
+
     let isProduction = false;
+
     // All the necessary modzules for gulp
     const gulp = require('gulp'),
         del = require('del'),
@@ -104,8 +118,8 @@
         return runSequence('clean', 'vendors', 'bundle', 'scss', 'images', 'fonts', 'html', cb);
     });
 
-     // Default (gulp [no_args])
-     gulp.task('default', (cb) => {
+    // Default (gulp [no_args])
+    gulp.task('default', (cb) => {
         return runSequence('clean', 'vendors', 'bundle', 'scss', 'images', 'fonts', 'serve', 'watch', 'dev', 'html', cb);
     });
 
@@ -131,7 +145,6 @@
 
     gulp.task('dev', (cb) => {
         watchers.forEach((item, index) => {
-            // item.on('change', browserSync.reload);
             item.on('unlink', (file) => {
                 const isWind = /^win/.test(process.platform);
                 let sId = 0;
@@ -157,7 +170,6 @@
                                 resolve(filesExist);
                             }).then((exist) => {
                                 if (!exist) {
-                                    // pathToFileApp = pathToFileApp.substring(0, pathToFileApp.lastIndexOf("/"));
                                     del(pathToFileApp);
                                 }
                             }, (reason) => {
