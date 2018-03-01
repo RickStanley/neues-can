@@ -1,5 +1,24 @@
 //jshint esversion: 6
 (function () {
+    // !!!!!!!!!!!!!
+    /**
+     *   ## Tasks
+     *   - clean: clear dist/ directory, except for dist/img
+     *   - html: partials injection into html, minfication and copy from src/*.html to dist/
+     *   - images: image minification and copy from src/img/* to dist/img/
+     *   - bundle: searchs for entries (src/js/*.js), watch for modifications, bundles (browserify, babelify and minify) and copy from src/js/{entries}.js to dist/js/
+     *   - sass: scss compilation and transformation to css, copy from src/sass/app.scss (main) to dist/css/
+     *   - fonts: copy from src/fonts to dist/fonts/
+     *   - dev: watches for deleted files and unlink them in their corresponding path in dist/
+     *   ## Gulp arguments
+     *   | argument           | Description                                              
+     *   |--------------------|----------------------------------------------------------
+     *   | --vhost="{vhost}"  | path/to/vhost/and/project-index (e.g.: local.dev/project)
+     *   | -p                 | bundles in production mode
+     *   | default            | watches for modifications and serve
+     *   | build              | just builds, usage preferred with argv `-p` like so: `gulp build -p`
+     */
+    // !!!!!!!!!!!!!
     // Use strict em function form
     'use strict';
     let isProduction = false;
@@ -12,8 +31,8 @@
         watch = require('gulp-watch'),
         fs = require('fs'),
         assign = require('lodash.assign'),
-        plugins = require('gulp-load-plugins')(),
-        minimist = require('minimist');
+        minimist = require('minimist'),
+        gulpRequireTasks = require('gulp-require-tasks');
 
     const argv = minimist(process.argv.slice(2));
     isProduction = (argv.p) ? argv.p : isProduction;
@@ -27,12 +46,12 @@
             justbuild: (argv._.indexOf('build') > -1) ? true : false
         },
         dest: {
-            html: 'app/',
-            images: 'app/img/',
-            css: 'app/css/',
-            fonts: 'app/fonts/',
-            js: 'app/js/',
-            root: 'app/'
+            html: './',
+            images: 'dist/img/',
+            css: 'dist/css/',
+            fonts: 'dist/fonts/',
+            js: 'dist/js/',
+            root: '/'
         },
         src: {
             html: {
@@ -67,74 +86,50 @@
 
     gulp.opts = assign(options, argv);
 
-    function getTask(task) {
-        return require('./tasks/' + task)(gulp, plugins);
-    }
+    // This requires the tasks within the tasks/ folder, it uses it's own filename as task name (e.g.: bundle.js, taskname: bundle)
+    gulpRequireTasks({
+        path: __dirname + '/tasks',
+        gulp: gulp
+    });
 
-    // Clear app
+    // Clear dist
     gulp.task('clean', () => {
         return del([
-            'app/**/*'
+            'dist/**/*'
         ]);
     });
 
-    // Build html
-    gulp.task('build-html', getTask('html'));
-
-    // Imagemin Task
-    gulp.task('imagemin', getTask('images'));
-
-    // Browserify task, undertaker: build-html task, followed by update (bundle builder) and log        
-    gulp.task('browserify', getTask('bundle'));
-
-    // Vendors
-    gulp.task('vendors', getTask('vendors'));
-
-    // // Sass task
-    gulp.task('sassmin', getTask('scss'));
-
-    // // Fonts
-    gulp.task('fonts', getTask('fonts'));
-
-    // Static server
-    gulp.task('browser-sync', getTask('serve'));
-
     // Just build
     gulp.task('build', (cb) => {
-        let tasks = [];
-        tasks = ['vendors', 'browserify', 'sassmin', 'imagemin', 'fonts'];
-        runSequence('clean', tasks);
-        return runSequence('build-html', cb);
+        return runSequence('clean', 'vendors', 'bundle', 'scss', 'images', 'fonts', 'html', cb);
     });
 
      // Default (gulp [no_args])
      gulp.task('default', (cb) => {
-        let tasks = [];
-        tasks = ['vendors', 'browserify', 'sassmin', 'imagemin', 'fonts', 'browser-sync', 'watch', 'dev'];
-        runSequence('clean', tasks);
-        return runSequence('build-html', cb);
+        return runSequence('clean', 'vendors', 'bundle', 'scss', 'images', 'fonts', 'serve', 'watch', 'dev', 'html', cb);
     });
 
     // Watch
-    gulp.task('watch', () => {
+    gulp.task('watch', (cb) => {
         watch(options.src.js, {
             ignoreInitial: true
         });
         watchers[0] = watch([options.src.html.pages, options.src.html.partials.path], {
             ignoreInitial: true
-        }, getTask('html'));
+        }, 'html');
         watchers[1] = watch(options.src.images, {
             ignoreInitial: true
-        }, getTask('images'));
+        }, 'images');
         watchers[2] = watch(options.src.fonts, {
             ignoreInitial: true
-        }, getTask('fonts'));
+        }, 'fonts');
         watch(options.src.css.includes, {
             ignoreInitial: true
-        }, getTask('scss'));
+        }, 'scss');
+        cb();
     });
 
-    gulp.task('dev', () => {
+    gulp.task('dev', (cb) => {
         watchers.forEach((item, index) => {
             // item.on('change', browserSync.reload);
             item.on('unlink', (file) => {
@@ -142,9 +137,9 @@
                 let sId = 0;
                 sId = (isWind) ? file.lastIndexOf('src\\') + 4 : file.lastIndexOf('src/') + 4;
                 let fileName = path.basename(file),
-                    pathToFileApp = file.replace(file.substring(0, sId), (isWind) ? "app\\" : "app/"),
+                    pathToFileApp = file.replace(file.substring(0, sId), (isWind) ? "dist\\" : "dist/"),
                     pathToFileSrc = file;
-                console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /src/. Deleting corresponding file on /app/."));
+                console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /src/. Deleting corresponding file on /dist/."));
                 del([pathToFileApp])
                     .then((paths) => {
                         console.log(chalk.blue(`Deleted file(s): ${paths.join('\n')}`));
@@ -175,5 +170,6 @@
                     });
             });
         });
+        cb();
     });
 }());
