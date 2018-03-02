@@ -20,7 +20,7 @@ module.exports = function (gulp, callback) {
     if (typeof vhostUrl === 'undefined' || vhostUrl === '' || vhostUrl === null) {
         browserSync.init({
             server: {
-                baseDir: "./app"
+                baseDir: "./dist"
             }
         });
     } else {
