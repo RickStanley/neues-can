@@ -20,7 +20,7 @@ module.exports = function (gulp, callback) {
     if (typeof vhostUrl === 'undefined' || vhostUrl === '' || vhostUrl === null) {
         browserSync.init({
             server: {
-                baseDir: "./dist"
+                baseDir: "./"
             }
         });
     } else {
@@ -28,5 +28,11 @@ module.exports = function (gulp, callback) {
             proxy: vhostUrl
         });
     }
+    browserSync.watch([
+        __dirname + '/' + gulp.opts.src.html.pages,
+        __dirname + '/' + gulp.opts.src.html.partials.path,
+        __dirname + '/' + gulp.opts.src.css.includes,
+        __dirname + '/' + gulp.opts.src.js
+    ]);
     callback();
 };

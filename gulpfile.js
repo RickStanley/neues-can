@@ -46,7 +46,8 @@
         fs = require('fs'),
         assign = require('lodash.assign'),
         minimist = require('minimist'),
-        gulpRequireTasks = require('gulp-require-tasks');
+        gulpRequireTasks = require('gulp-require-tasks'),
+        batch = require('gulp-batch');
 
     const argv = minimist(process.argv.slice(2));
     isProduction = (argv.p) ? argv.p : isProduction;
@@ -92,8 +93,6 @@
                     chalk.red(" \n ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"));
             } catch (err) {
                 console.log(chalk.red(error));
-            } finally {
-                console.log("An undefined error has ocurred after trying to bundle JS");
             }
         }
     };
@@ -130,16 +129,24 @@
         });
         watchers[0] = watch([options.src.html.pages, options.src.html.partials.path], {
             ignoreInitial: true
-        }, 'html');
+        }, batch((events, done) => {
+            return runSequence('html', done);
+        }));
         watchers[1] = watch(options.src.images, {
             ignoreInitial: true
-        }, 'images');
+        }, batch((events, done) => {
+            return runSequence('images', done);
+        }));
         watchers[2] = watch(options.src.fonts, {
             ignoreInitial: true
-        }, 'fonts');
+        }, batch((events, done) => {
+            return runSequence('fonts', done);
+        }));
         watch(options.src.css.includes, {
             ignoreInitial: true
-        }, 'scss');
+        }, batch((events, done) => {
+            return runSequence('scss', done);
+        }));
         cb();
     });
 
@@ -161,18 +168,20 @@
                         fs.readdir(pathToFileApp, (err, files) => {
                             if (err) throw err;
                             let filesExist = false;
-                            return new Promise((resolve, reject) => {
+                            let promise = new Promise((resolve, reject) => {
                                 for (let key in files) {
                                     if (files.hasOwnProperty(key)) {
                                         if ((path.extname(files[key]) === '') === false) filesExist = true;
                                     }
                                 }
                                 resolve(filesExist);
-                            }).then((exist) => {
+                            });
+                            promise
+                            .then((exist) => {
                                 if (!exist) {
                                     del(pathToFileApp);
                                 }
-                            }, (reason) => {
+                            }).catch((reason) => {
                                 console.log(`Something went wrong trying to read dir: ${reason}`);
                             });
                         });
