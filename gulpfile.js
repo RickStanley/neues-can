@@ -37,7 +37,7 @@
 
     let isProduction = false;
 
-    const isWind = /^win/.test(process.platform);    
+    const isWind = /^win/.test(process.platform);
 
     // All the necessary modzules for gulp
     const gulp = require('gulp'),
@@ -155,26 +155,31 @@
 
     gulp.task('dev', (cb) => {
         watchers.forEach((item, index) => {
-            item.on('unlink', (file) => {
-                let sId = 0;
-                sId = (isWind) ? file.lastIndexOf('src\\') + 4 : file.lastIndexOf('src/') + 4;
-                let fileName = path.basename(file),
-                    pathToFileApp = file.replace(file.substring(0, sId), (isWind) ? "dist\\" : "dist/"),
-                    pathToFileSrc = file;
-                console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /src/. Deleting corresponding file on /dist/."));
-                del([pathToFileApp])
-                    .then((paths) => {
-                        console.log(chalk.blue(`Deleted file: ${paths.join('\n')}`));
-                        // this reads the directory in question and checks if it is empty, if yes then the folder is deleted
-                        pathToFileApp = pathToFileApp.substring(pathToFileApp.lastIndexOf((isWind) ? '\\' : '/'), 0);
-                        fs.readdir(pathToFileApp, (err, files) => {
-                            if (err) throw err;
-                            if (files.length <= 0) del(pathToFileApp);
-                        });
-                    })
-                    .catch((reason) => {
-                        console.log(chalk.red(`Something went wrong: ${reason}`));
-                    });
+            item.on('unlink', async (file) => {
+                try {
+                    let routing = '',
+                        isHtml = (file.split('.').pop() === 'html');
+                    const srcIndex = (isWind) ? file.lastIndexOf('src\\') + 4 : file.lastIndexOf('src/') + 4;
+                    if (isHtml) {
+                        routing = __dirname + file.replace(file.substring(0, srcIndex), (isWind) ? "\\" : "/");
+                    } else {
+                        routing = __dirname + file.replace(file.substring(0, srcIndex), (isWind) ? "\\dist\\" : "/dist/");
+                    }
+                    console.log(chalk.yellow(path.basename(file)) + chalk.red(" is deleted from src/."));
+                    await del([routing]);
+                    console.log(chalk.blue(`Deleted file: ${path.basename(file)}`));
+                    if (!isHtml) {
+                        routing = routing.substring(routing.lastIndexOf((isWind) ? '\\' : '/'), 0);
+                        if (fs.exists(routing)) {
+                            fs.readdir(routing, (err, files) => {
+                                if (err) throw err;
+                                if (files.length <= 0) del(routing);
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.log(chalk.red('Something went wrong: ') + chalk.yellow(error));
+                }
             });
         });
         cb();
