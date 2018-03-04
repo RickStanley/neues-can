@@ -1,4 +1,5 @@
-const browserSync = require('browser-sync').create();
+const browserSync = require('browser-sync').create(),
+        watch = require('gulp-watch');
 
 module.exports = function (gulp, callback) {
     var vhostUrl = '';
@@ -21,18 +22,22 @@ module.exports = function (gulp, callback) {
         browserSync.init({
             server: {
                 baseDir: "./"
-            }
+            },
+            injectChanges: true            
         });
     } else {
         browserSync.init({
-            proxy: vhostUrl
+            proxy: vhostUrl,
+            injectChanges: true
         });
     }
-    browserSync.watch([
-        __dirname + '/' + gulp.opts.src.html.pages,
-        __dirname + '/' + gulp.opts.src.html.partials.path,
-        __dirname + '/' + gulp.opts.src.css.includes,
-        __dirname + '/' + gulp.opts.src.js
-    ]);
+
+    watch([
+        __dirname + '/../' + gulp.opts.src.html.pages,
+        __dirname + '/../' + gulp.opts.src.html.partials.path,
+        __dirname + '/../' + gulp.opts.src.css.includes,
+        __dirname + '/../' + gulp.opts.src.js
+    ]).on('change', browserSync.reload);
+    
     callback();
 };

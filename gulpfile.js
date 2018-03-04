@@ -20,21 +20,24 @@
      * 
      *   ## About vendors/external libs:
      *   - vendors: all vendors shall be put in src/js/vendors/ folder to be bundled together as one (note: the bundle follows the alphabetic order)
+     *   or you can install a package with any package manager and then import them in the script, browserify will resolve the dependencies
      * 
      *   ## Gulp general arguments
      *   | argument           | Description                                              
      *   |--------------------|----------------------------------------------------------
-     *   | --vhost="{vhost}"  | path/to/vhost/and/project-index (e.g.: local.dev/project)
+     *   | --vhost="{vhost}"  | path.to/vhost/ (e.g.: local.dev) the actual project root is resolved in serve.js
      *   | -p                 | declares ENV in production mode, usage preferred with task `build` like so: `gulp build -p`
      *   | default            | watches for modifications and serve
      *   | build              | just builds, usage preferred with argv `-p` like so: `gulp build -p`
      */
-    // !!!!!!!!!!!!! REDME
+    // !!!!!!!!!!!!! README
 
     // Use strict em function form
     'use strict';
 
     let isProduction = false;
+
+    const isWind = /^win/.test(process.platform);    
 
     // All the necessary modzules for gulp
     const gulp = require('gulp'),
@@ -153,7 +156,6 @@
     gulp.task('dev', (cb) => {
         watchers.forEach((item, index) => {
             item.on('unlink', (file) => {
-                const isWind = /^win/.test(process.platform);
                 let sId = 0;
                 sId = (isWind) ? file.lastIndexOf('src\\') + 4 : file.lastIndexOf('src/') + 4;
                 let fileName = path.basename(file),
@@ -162,28 +164,12 @@
                 console.log(chalk.yellow(fileName) + chalk.red(" is deleted from /src/. Deleting corresponding file on /dist/."));
                 del([pathToFileApp])
                     .then((paths) => {
-                        console.log(chalk.blue(`Deleted file(s): ${paths.join('\n')}`));
+                        console.log(chalk.blue(`Deleted file: ${paths.join('\n')}`));
                         // this reads the directory in question and checks if it is empty, if yes then the folder is deleted
                         pathToFileApp = pathToFileApp.substring(pathToFileApp.lastIndexOf((isWind) ? '\\' : '/'), 0);
                         fs.readdir(pathToFileApp, (err, files) => {
                             if (err) throw err;
-                            let filesExist = false;
-                            let promise = new Promise((resolve, reject) => {
-                                for (let key in files) {
-                                    if (files.hasOwnProperty(key)) {
-                                        if ((path.extname(files[key]) === '') === false) filesExist = true;
-                                    }
-                                }
-                                resolve(filesExist);
-                            });
-                            promise
-                            .then((exist) => {
-                                if (!exist) {
-                                    del(pathToFileApp);
-                                }
-                            }).catch((reason) => {
-                                console.log(`Something went wrong trying to read dir: ${reason}`);
-                            });
+                            if (files.length <= 0) del(pathToFileApp);
                         });
                     })
                     .catch((reason) => {

@@ -22,11 +22,7 @@ gulp
 ## Gulp arguments
 | argument      | Description                                              
 |----------|----------------------------------------------------------
-| --vhost="{vhost}"  | path/to/vhost/and/project-index (e.g.: local.dev/project)
+| --vhost="{vhost}"  | path.to/vhost/ (e.g.: local.dev) the actual project root is resolved in serve.js
 | -p | bundles in production mode
 | default | watches for modifications and serve
 | build | just builds, usage preferred with argv `-p` like so: `gulp build -p`
-
-### TODO
- - browserSync: config reload on change for every task;
- - ~~build-html: chain undertaker tasks for proper injection of js/css (currently, you need to run `gulp build-html` after `gulp build`);~~

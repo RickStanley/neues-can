@@ -45,28 +45,11 @@ function setBundles(gulp) {
             .on('error', gulp.opts.swallowError)
             .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
             .pipe(gulp.dest(gulp.opts.dest.js))
-            .pipe(hash.manifest('./assests.json', {
+            .pipe(hash.manifest('dist/assets.json', {
                 deletOld: true,
                 sourceDir: __dirname + '/dist/js'
             }))
             .pipe(gulp.dest('.'));
-        if (!gulp.opts.env.justbuild) {
-            b.bundle()
-                .on('error', gulp.opts.swallowError)
-                .pipe(source(path.basename(file, '.js') + '.bundle.js'))
-                .pipe(buffer())
-                .pipe(gulpIf(gulp.opts.env.isProduction, hash()))
-                .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.init()))
-                .pipe(uglify())
-                .on('error', gulp.opts.swallowError)
-                .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
-                .pipe(gulp.dest(gulp.opts.dest.js))
-                .pipe(hash.manifest('./assests.json', {
-                    deletOld: true,
-                    sourceDir: __dirname + '/dist/js'
-                }))
-                .pipe(gulp.dest('.'));
-        }
         b.on('log', console.log);
         bundlers.push({
             b: b,
@@ -81,9 +64,9 @@ module.exports = function (gulp, callback) {
     let streams = [];
     if (!gulp.opts.env.justbuild) {
         bundlers.forEach(element => {
-            let watching = watchify(element.b)
+            watchify(element.b)
                 .on('update', function () {
-                    watching.bundle()
+                    (element.b).bundle()
                         .on('error', gulp.opts.swallowError)
                         .pipe(source(element.fileName + '.bundle.js'))
                         .pipe(buffer())
@@ -93,19 +76,33 @@ module.exports = function (gulp, callback) {
                         .on('error', gulp.opts.swallowError)
                         .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
                         .pipe(gulp.dest(gulp.opts.dest.js))
-                        .pipe(hash.manifest('./assests.json', {
+                        .pipe(hash.manifest('dist/assets.json', {
                             deletOld: true,
                             sourceDir: __dirname + '/dist/js'
                         }))
                         .pipe(gulp.dest('.'));
-                    streams.push(watching);
                 });
+            let bundle = (element.b).bundle()
+                .on('error', gulp.opts.swallowError)
+                .pipe(source(path.basename(element.fileName, '.js') + '.bundle.js'))
+                .pipe(buffer())
+                .pipe(gulpIf(gulp.opts.env.isProduction, hash()))
+                .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.init()))
+                .pipe(uglify())
+                .on('error', gulp.opts.swallowError)
+                .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
+                .pipe(gulp.dest(gulp.opts.dest.js))
+                .pipe(hash.manifest('dist/assets.json', {
+                    deletOld: true,
+                    sourceDir: __dirname + '/dist/js'
+                }))
+                .pipe(gulp.dest('.'));
+            streams.push(bundle);
         });
-        return merge2(streams);
     } else {
         (bundlers).forEach(element => {
             streams.push(element.b);
         });
-        return merge2(streams);
     }
+    return merge2(streams);
 };
