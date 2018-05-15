@@ -8,7 +8,6 @@
      *   - images: image minification and copy from src/img/* to dist/img/
      *   - bundle: searchs for entries (src/js/*.js), watch for modifications, bundles (browserify, babelify and minify) and copy from src/js/{entries}.js to dist/js/
      *   - sass: scss compilation and transformation to css, copy from src/sass/app.scss (main) to dist/css/
-     *   - fonts: copy from src/fonts to dist/fonts/
      *   - dev: watches for deleted files and unlink them in their corresponding path in dist/
      *   - vendors: bundles and unglify all vendors from src/js/vendors/ folder, if the folders doesn't exists, just create it
      * 
@@ -27,8 +26,9 @@
      *   |--------------------|----------------------------------------------------------
      *   | --vhost="{vhost}"  | path.to/vhost/ (e.g.: local.dev) the actual project root is resolved in serve.js
      *   | -p                 | declares ENV in production mode, usage preferred with task `build` like so: `gulp build -p`
-     *   | default            | watches for modifications and serve
+     *   | default            | watches for modifications
      *   | build              | just builds, usage preferred with argv `-p` like so: `gulp build -p`
+     *   | -s                 | creates server
      */
     // !!!!!!!!!!!!! README
 
@@ -36,6 +36,7 @@
     'use strict';
 
     let isProduction = false;
+    let server = false;
 
     const isWind = /^win/.test(process.platform);
 
@@ -54,6 +55,7 @@
 
     const argv = minimist(process.argv.slice(2));
     isProduction = (argv.p) ? argv.p : isProduction;
+    server = (argv.s) ? true : false;
 
     let watchers = [];
 
@@ -67,7 +69,6 @@
             html: './',
             images: 'dist/img/',
             css: 'dist/css/',
-            fonts: 'dist/fonts/',
             js: 'dist/js/',
             root: '/'
         },
@@ -75,16 +76,15 @@
             html: {
                 pages: 'src/*.html',
                 partials: {
-                    path: 'src/partials/*.html',
-                    names: ['footer', 'head', 'header']
+                    glob: 'src/partials/*.html',
+                    path: 'src/partials/'
                 }
             },
             images: 'src/img/**/*.{png,gif,jpg,jpeg,svg}',
             css: {
-                main: 'src/scss/app.scss',
+                main: 'src/scss/*.scss',
                 includes: 'src/scss/**/*.scss'
             },
-            fonts: 'src/fonts/**/*',
             js: 'src/js/**/*.js',
             VENDORS: 'src/js/vendors/**/*.js'
         },
@@ -117,12 +117,15 @@
 
     // Just build
     gulp.task('build', (cb) => {
-        return runSequence('clean', 'vendors', 'bundle', 'scss', 'images', 'fonts', 'html', cb);
+        let tasks = ['clean', 'vendors', 'bundle', 'scss', 'images', 'html'];
+        return runSequence(...tasks, cb);
     });
 
     // Default (gulp [no_args])
     gulp.task('default', (cb) => {
-        return runSequence('clean', 'vendors', 'bundle', 'scss', 'images', 'fonts', 'serve', 'watch', 'dev', 'html', cb);
+        let tasks = ['clean', 'vendors', 'bundle', 'scss', 'images', 'watch', 'dev', 'html'];
+        if (server || argv.vhost) tasks.push('serve');
+        return runSequence(...tasks, cb);
     });
 
     // Watch
@@ -130,7 +133,7 @@
         watch(options.src.js, {
             ignoreInitial: true
         });
-        watchers[0] = watch([options.src.html.pages, options.src.html.partials.path], {
+        watchers[0] = watch([options.src.html.pages, options.src.html.partials.glob], {
             ignoreInitial: true
         }, batch((events, done) => {
             return runSequence('html', done);
@@ -139,11 +142,6 @@
             ignoreInitial: true
         }, batch((events, done) => {
             return runSequence('images', done);
-        }));
-        watchers[2] = watch(options.src.fonts, {
-            ignoreInitial: true
-        }, batch((events, done) => {
-            return runSequence('fonts', done);
         }));
         watch(options.src.css.includes, {
             ignoreInitial: true

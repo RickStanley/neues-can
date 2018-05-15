@@ -1,7 +1,8 @@
 const gulpIf = require('gulp-if'),
     inject = require('gulp-inject'),
     hash = require('gulp-hash'),
-    htmlmin = require('gulp-htmlmin');
+    htmlmin = require('gulp-htmlmin'),
+    fs = require('fs');
 module.exports = function (gulp, callback) {
     const opts = {
         algorithm: 'sha1',
@@ -9,7 +10,9 @@ module.exports = function (gulp, callback) {
         template: '<%= name %><%= ext %>?hash=<%= hash %>'
     };
     let stream = gulp.src(gulp.opts.src.html.pages);
-    (gulp.opts.src.html.partials.names).forEach(partial => {
+    const partials = fs.readdirSync(gulp.opts.src.html.partials.path);
+    partials.forEach(partial => {
+        partial = partial.substring(partial.indexOf('.'), -1);
         stream = stream.pipe(inject(gulp.src('src/partials/' + partial + '.html'), {
             name: partial,
             removeTags: true,

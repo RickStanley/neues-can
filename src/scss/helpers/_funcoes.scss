@@ -8,23 +8,8 @@
 
 
 /* Media Query */
-$mobile-width: 320px;
 $tablet-width: 768px;
 $desktop-width: 1024px;
-
-/*
-	uso
-	@include mobile {
-    font-size: 20px;
-  }
- */
-
-@mixin mobile {
-  @media (max-width: #{$tablet-width - 1px}) {
-    @content;
-  }
-}
-
 
 /*
 	uso
@@ -34,7 +19,7 @@ $desktop-width: 1024px;
  */
 
 @mixin tablet {
-  @media (max-width: #{$desktop-width}) {
+  @media (min-width: #{$tablet-width}) {
     @content;
   }
 }
@@ -47,7 +32,7 @@ $desktop-width: 1024px;
  */
 
 @mixin desktop {
-  @media (min-width: #{$desktop-width + 1}) {
+  @media (min-width: #{$desktop-width}) {
     @content;
   }
 }
@@ -201,17 +186,7 @@ $desktop-width: 1024px;
 // 		color: darker($red);
 // 	}
 // }
-@mixin no-margin-padding() {
-  margin: 0;
-  padding: 0;
-}
 
-// ==============================
-// USAGE
-// ==============================
-// nav ul {
-// 	@include no-margin-padding;
-// }
 @mixin circle() {
   border-radius: 50em;
 }
@@ -257,7 +232,6 @@ $desktop-width: 1024px;
 // div {
 //   @include responsive-ratio(16, 9);
 // }
-// A FUCKIN' TRIANGLE HAUAHUAHSUD
 @mixin css-triangle($color, $direction, $size: 6px, $position: absolute, $round: false) {
   @include pseudo($pos: $position);
   width: 0;
@@ -390,3 +364,55 @@ $z-indexes: ( "outdated-browser", "modal", "site-header", "page-wrapper", "site-
     }
   }
 }
+
+// ==============================
+// Font size mixin
+// ==============================
+
+//  default font scale bounding
+$font-lock-min:  400px !default; 
+$font-lock-max: 1000px !default;
+
+//  font-size 
+@mixin font-size(
+  $min,                         // font-size 
+  $max: null,                   // optional maximum font size
+  $lock-min: $font-lock-min,  // optional minimum viewport width 
+  $lock-max: $font-lock-max   // optional maximum viewport width 
+  ){
+    & { font-size: $min; }
+    @if $max {
+      @media (min-width: $lock-min) and (max-width: $lock-max){ 
+        & { 
+          font-size: calc(
+            #{$min} + 
+            #{num($max) - num($min)} * 
+            (100vw - #{$lock-min}) / 
+            #{num($lock-max) - num($lock-min)}
+          ); 
+        } 
+      }
+      @media (min-width: $lock-max){ 
+        & { font-size: $max; } 
+      }
+    }
+}
+
+//  strip units helper function
+@function num($input){ 
+  @return $input/($input * 0 + 1); 
+}
+
+// ==============================
+// Usage
+// ==============================
+
+// simple (no scale)  
+// p { @include font-size(15px); }       
+
+//  fluid scale based on default bounding
+// :root { @include font-size(16px, 24px); }
+
+//  fluid scale based on custom bounding
+//  (you could also change defaults) 
+// :root { @include font-size(16px, 24px, 320px, 960px); }

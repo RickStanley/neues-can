@@ -28,12 +28,12 @@ function setBundles(gulp) {
         let b = (!gulp.opts.env.justbuild) ? browserify(opts)
             .external(gulp.opts.src.VENDORS)
             .transform('babelify', {
-                presets: ['es2015'],
+                presets: ['env'],
                 plugins: ['transform-remove-strict-mode']
             }) : browserify(opts)
             .external(gulp.opts.src.VENDORS)
             .transform('babelify', {
-                presets: ['es2015'],
+                presets: ['env'],
                 plugins: ['transform-remove-strict-mode']
             }).bundle()
             .on('error', gulp.opts.swallowError)
