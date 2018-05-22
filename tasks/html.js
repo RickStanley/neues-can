@@ -22,7 +22,13 @@ module.exports = function (gulp, callback) {
         }));
     });
     return stream
-        .pipe(inject(gulp.src(['!public/js/vendors.js', 'public/js/*.js', 'public/css/*.css'], {
+        .pipe(inject(gulp.src('public/css/*.css'), {
+            removeTags: true,
+            transform: function (filePath, file) {
+                return `<style>${file.contents.toString('utf8')}</style>`;
+            }
+        }))
+        .pipe(inject(gulp.src(['!public/js/vendors.js', 'public/js/*.js'], {
             read: false
         }).pipe(gulpIf(gulp.opts.env.isProduction, hash(opts))), {
             addRootSlash: false

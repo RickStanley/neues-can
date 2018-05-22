@@ -15,6 +15,7 @@
      *  - `watch`: watches for modifications
      *
      *  ### General:
+     *  Assets folder should contain essential files like fonts.
      *  You can use ES6 in this project.
      *
      *  If you create a new partial (i.e.: html partial to be included), you must declare its html filename in the html file target. E.g.:
@@ -125,6 +126,7 @@
             './src/scss',
             './src/partials',
             './src/img',
+            './public',
             './public/img',
             './public/js',
             './public/css',
