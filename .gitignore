@@ -1,4 +1,10 @@
 node_modules/
+
+# DEBUG #
+# REMOVE WHEN PUSHING TO PRODUCTION #
+public/
+
+
 # Compiled source #
 ###################
 *.com

@@ -15,7 +15,7 @@ module.exports = function (gulp, callback) {
             }),
             imagemin.svgo({
                 plugins: [{
-                    removeViewBox: true
+                    removeViewBox: false
                 }]
             })
         ], {

@@ -22,12 +22,12 @@ module.exports = function (gulp, callback) {
         }));
     });
     return stream
-        .pipe(inject(gulp.src(['!dist/js/vendors.js', 'dist/js/*.js', 'dist/css/*.css'], {
+        .pipe(inject(gulp.src(['!public/js/vendors.js', 'public/js/*.js', 'public/css/*.css'], {
             read: false
         }).pipe(gulpIf(gulp.opts.env.isProduction, hash(opts))), {
             addRootSlash: false
         }))
-        .pipe(inject(gulp.src('dist/js/vendors.js', {
+        .pipe(inject(gulp.src('public/js/vendors.js', {
             read: false
         }), {
             name: 'vendors',

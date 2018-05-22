@@ -2,33 +2,42 @@
 (function () {
     // !!!!!!!!!!!!! README
     /**
-     *   ## Tasks
-     *   - clean: clear dist/ directory, except for dist/img
-     *   - html: partials injection into html, minfication and copy from src/*.html to dist/
-     *   - images: image minification and copy from src/img/* to dist/img/
-     *   - bundle: searchs for entries (src/js/*.js), watch for modifications, bundles (browserify, babelify and minify) and copy from src/js/{entries}.js to dist/js/
-     *   - sass: scss compilation and transformation to css, copy from src/sass/app.scss (main) to dist/css/
-     *   - dev: watches for deleted files and unlink them in their corresponding path in dist/
-     *   - vendors: bundles and unglify all vendors from src/js/vendors/ folder, if the folders doesn't exists, just create it
-     * 
-     *   ## General:
-     *   You can use ES6 in this project.
-     * 
-     *   ## About partials:
-     *   If you create a new partial, you must declare its html filename in the partials array of names bellow
-     * 
-     *   ## About vendors/external libs:
-     *   - vendors: all vendors shall be put in src/js/vendors/ folder to be bundled together as one (note: the bundle follows the alphabetic order)
-     *   or you can install a package with any package manager and then import them in the script, browserify will resolve the dependencies
-     * 
-     *   ## Gulp general arguments
-     *   | argument           | Description                                              
-     *   |--------------------|----------------------------------------------------------
-     *   | --vhost="{vhost}"  | path.to/vhost/ (e.g.: local.dev) the actual project root is resolved in serve.js
-     *   | -p                 | declares ENV in production mode, usage preferred with task `build` like so: `gulp build -p`
-     *   | default            | watches for modifications
-     *   | build              | just builds, usage preferred with argv `-p` like so: `gulp build -p`
-     *   | -s                 | creates server
+     * # Neues-Can — Browserify, Gulp, Babel project bootstrap
+     *  ## Tasks
+     *  - `init`: initializes folders to be used
+     *  - `clean`: clear public/ directory, except for public/img
+     *  - `html`: partials injection into html, minfication and copy from src/*.html to public/
+     *  - `images`: image minification and copy from src/img/* to public/img/
+     *  - `bundle`: searchs for entries (src/js/*.js), watch for modifications, bundles (browserify, babelify and minify) and copy from src/js/*.js to public/js/
+     *  - `sass`: scss compilation and transformation to css, bundles entries on the high level (src/scss/*.scss) to public/css/
+     *  - `dev`: watches for deleted files and unlink them in their corresponding path in public/
+     *  - `vendors`: bundles and unglify all vendors from src/js/vendors/ folder, if the folders doesn't exists, just create it
+     *  - `watch`: watches for modifications
+     *
+     *  ### General:
+     *  You can use ES6 in this project.
+     *
+     *  If you create a new partial (i.e.: html partial to be included), you must declare its html filename in the html file target. E.g.:
+     *  ```html
+     *  <!-- file: index.html, follow the example bellow -->
+     *  <footer>
+     *      <!-- footer:html -->
+     *      <!-- endinject -->
+     *  </footer>
+     *  ```
+     *
+     *  ### About vendors/external libs:
+     *  - vendors: all vendors shall be put in src/js/vendors/ folder to be bundled together as one (note: the bundle follows the alphabetic order)
+     *  or you can install a package with any package manager and then import them in the script, browserify will resolve the dependencies
+     *
+     *  ## Gulp general arguments
+     *  | argument             | Description                                              
+     *  |----------------------|----------------------------------------------------------
+     *  | `--vhost='url'`      | path.to/vhost/ (e.g.: local.dev) the actual project root is resolved in serve.js
+     *  | `-p`                 | declares ENV in production mode, usage preferred with task `build` like so: `gulp build -p`
+     *  | `default`            | watches for modifications
+     *  | `build`              | just builds, usage preferred with argv `-p` like so: `gulp build -p`
+     *  | `-s`                 | creates server
      */
     // !!!!!!!!!!!!! README
 
@@ -66,10 +75,10 @@
             justbuild: (argv._.indexOf('build') > -1) ? true : false
         },
         dest: {
-            html: './',
-            images: 'dist/img/',
-            css: 'dist/css/',
-            js: 'dist/js/',
+            html: 'public/',
+            images: 'public/img/',
+            css: 'public/css/',
+            js: 'public/js/',
             root: '/'
         },
         src: {
@@ -108,24 +117,44 @@
         gulp: gulp
     });
 
+    gulp.task('init', () => {
+        const folders = [
+            './src/js',
+            './src/js/vendors',
+            './src/js/modules',
+            './src/scss',
+            './src/partials',
+            './src/img',
+            './public/img',
+            './public/js',
+            './public/css',
+            './assets'
+        ];
+        return Promise.all(folders.map(async folder => {
+            if (!fs.existsSync(folder)) fs.mkdirSync(folder);
+        }));
+    });
+
     // Clear dist
     gulp.task('clean', () => {
         return del([
-            'dist/**/*'
+            'public/**/*'
         ]);
     });
 
     // Just build
     gulp.task('build', (cb) => {
-        let tasks = ['clean', 'vendors', 'bundle', 'scss', 'images', 'html'];
-        return runSequence(...tasks, cb);
+        const undertakers = ['images'];
+        let tasks = ['clean', 'init', 'vendors', 'bundle', 'scss', 'html'];
+        return runSequence(undertakers, ...tasks, cb);
     });
 
     // Default (gulp [no_args])
     gulp.task('default', (cb) => {
-        let tasks = ['clean', 'vendors', 'bundle', 'scss', 'images', 'watch', 'dev', 'html'];
+        const undertakers = ['images'];
+        let tasks = ['clean', 'init', 'vendors', 'bundle', 'scss', 'watch', 'dev', 'html'];
         if (server || argv.vhost) tasks.push('serve');
-        return runSequence(...tasks, cb);
+        return runSequence(undertakers, ...tasks, cb);
     });
 
     // Watch
@@ -161,7 +190,7 @@
                     if (isHtml) {
                         routing = __dirname + file.replace(file.substring(0, srcIndex), (isWind) ? "\\" : "/");
                     } else {
-                        routing = __dirname + file.replace(file.substring(0, srcIndex), (isWind) ? "\\dist\\" : "/dist/");
+                        routing = __dirname + file.replace(file.substring(0, srcIndex), (isWind) ? "\\dist\\" : "/public/");
                     }
                     console.log(chalk.yellow(path.basename(file)) + chalk.red(" is deleted from src/."));
                     await del([routing]);

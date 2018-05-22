@@ -45,9 +45,9 @@ function setBundles(gulp) {
             .on('error', gulp.opts.swallowError)
             .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
             .pipe(gulp.dest(gulp.opts.dest.js))
-            .pipe(hash.manifest('dist/assets.json', {
+            .pipe(hash.manifest('public/assets.json', {
                 deletOld: true,
-                sourceDir: __dirname + '/dist/js'
+                sourceDir: __dirname + '/public/js'
             }))
             .pipe(gulp.dest('.'));
         b.on('log', console.log);
@@ -76,9 +76,9 @@ module.exports = function (gulp, callback) {
                         .on('error', gulp.opts.swallowError)
                         .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
                         .pipe(gulp.dest(gulp.opts.dest.js))
-                        .pipe(hash.manifest('dist/assets.json', {
+                        .pipe(hash.manifest('public/assets.json', {
                             deletOld: true,
-                            sourceDir: __dirname + '/dist/js'
+                            sourceDir: __dirname + '/public/js'
                         }))
                         .pipe(gulp.dest('.'));
                 });
@@ -92,9 +92,9 @@ module.exports = function (gulp, callback) {
                 .on('error', gulp.opts.swallowError)
                 .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
                 .pipe(gulp.dest(gulp.opts.dest.js))
-                .pipe(hash.manifest('dist/assets.json', {
+                .pipe(hash.manifest('public/assets.json', {
                     deletOld: true,
-                    sourceDir: __dirname + '/dist/js'
+                    sourceDir: __dirname + '/public/js'
                 }))
                 .pipe(gulp.dest('.'));
             streams.push(bundle);
