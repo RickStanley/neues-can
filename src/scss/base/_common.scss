@@ -1,0 +1,44 @@
+// Common styles, e.g.: sections
+
+// :root { @include font-size(16px, 24px); }
+
+.inline_block-middle {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.contain_width {
+    max-width: $maxWidth;
+}
+
+
+*,
+*::before,
+*::after {
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.cf:before,
+.cf:after {
+    content: " ";
+    display: table;
+}
+
+.cf:after {
+    clear: both;
+}
+
+/**
+ * For IE 6/7 only
+ * Include this rule to trigger hasLayout and contain floats.
+ */
+
+.cf {
+    *zoom: 1;
+}

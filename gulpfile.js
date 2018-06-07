@@ -10,7 +10,7 @@
      *  - `images`: image minification and copy from src/img/* to public/img/
      *  - `bundle`: searchs for entries (src/js/*.js), watch for modifications, bundles (browserify, babelify and minify) and copy from src/js/*.js to public/js/
      *  - `sass`: scss compilation and transformation to css, bundles entries on the high level (src/scss/*.scss) to public/css/
-     *  - `dev`: watches for deleted files and unlink them in their corresponding path in public/
+     *  - `dev`: watches for modifications and setup tasks for development
      *  - `vendors`: bundles and unglify all vendors from src/js/vendors/ folder, if the folders doesn't exists, just create it
      *  - `watch`: watches for modifications
      *
@@ -35,9 +35,9 @@
      *  | argument             | Description                                              
      *  |----------------------|----------------------------------------------------------
      *  | `--vhost='url'`      | path.to/vhost/ (e.g.: local.dev) the actual project root is resolved in serve.js
-     *  | `-p`                 | declares ENV in production mode, usage preferred with task `build` like so: `gulp build -p`
-     *  | `default`            | watches for modifications
-     *  | `build`              | just builds, usage preferred with argv `-p` like so: `gulp build -p`
+     *  | `-p`                 | declares ENV in production mode
+     *  | `dev`            | watches for modifications
+     *  | `default`              | just builds, usage preferred with argv `-p`
      *  | `-s`                 | creates server
      */
     // !!!!!!!!!!!!! README
@@ -73,14 +73,14 @@
         env: {
             isProduction: isProduction,
             vhost: argv.vhost,
-            justbuild: (argv._.indexOf('build') > -1) ? true : false
+            justbuild: (argv._.length === 0) ? true : false
         },
         dest: {
             html: 'public/',
             images: 'public/img/',
             css: 'public/css/',
             js: 'public/js/',
-            root: '/'
+            root: 'public'
         },
         src: {
             html: {
@@ -118,6 +118,7 @@
         gulp: gulp
     });
 
+    // Initializes workspace
     gulp.task('init', () => {
         const folders = [
             './src/js',
@@ -126,10 +127,10 @@
             './src/scss',
             './src/partials',
             './src/img',
-            './public',
-            './public/img',
-            './public/js',
-            './public/css',
+            './' + options.dest.root,
+            './' + options.dest.root + '/img',
+            './' + options.dest.root + '/js',
+            './' + options.dest.root + '/css',
             './assets'
         ];
         return Promise.all(folders.map(async folder => {
@@ -137,24 +138,24 @@
         }));
     });
 
-    // Clear dist
+    // Clear public/
     gulp.task('clean', () => {
         return del([
-            'public/**/*'
+            options.dest.root + '/**/*'
         ]);
     });
 
-    // Just build
-    gulp.task('build', (cb) => {
+    // Build
+    gulp.task('default', (cb) => {
         const undertakers = ['images'];
         let tasks = ['clean', 'init', 'vendors', 'bundle', 'scss', 'html'];
         return runSequence(undertakers, ...tasks, cb);
     });
 
-    // Default (gulp [no_args])
-    gulp.task('default', (cb) => {
+    // Development
+    gulp.task('dev', (cb) => {
         const undertakers = ['images'];
-        let tasks = ['clean', 'init', 'vendors', 'bundle', 'scss', 'watch', 'dev', 'html'];
+        let tasks = ['clean', 'init', 'vendors', 'bundle', 'scss', 'watch-events', 'html'];
         if (server || argv.vhost) tasks.push('serve');
         return runSequence(undertakers, ...tasks, cb);
     });
@@ -179,10 +180,15 @@
         }, batch((events, done) => {
             return runSequence('scss', done);
         }));
+        watch(options.src.VENDORS, {
+            ignoreInitial: true
+        }, batch((events, done) => {
+            return runSequence('vendors', done);
+        }));
         cb();
     });
 
-    gulp.task('dev', (cb) => {
+    gulp.task('catch-events', (cb) => {
         watchers.forEach((item, index) => {
             item.on('unlink', async (file) => {
                 try {
@@ -192,7 +198,7 @@
                     if (isHtml) {
                         routing = __dirname + file.replace(file.substring(0, srcIndex), (isWind) ? "\\" : "/");
                     } else {
-                        routing = __dirname + file.replace(file.substring(0, srcIndex), (isWind) ? "\\dist\\" : "/public/");
+                        routing = __dirname + file.replace(file.substring(0, srcIndex), (isWind) ? "\\dist\\" : "/" + options.dest.root + "/");
                     }
                     console.log(chalk.yellow(path.basename(file)) + chalk.red(" is deleted from src/."));
                     await del([routing]);
@@ -212,5 +218,9 @@
             });
         });
         cb();
+    });
+
+    gulp.task('watch-events', ['watch'], (cb) => {
+        return runSequence('watch', 'catch-events', cb);
     });
 }());

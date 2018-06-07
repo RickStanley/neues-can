@@ -1,12 +1,13 @@
 # Neues-Can — Browserify, Gulp, Babel project bootstrap
 ## Tasks
+- `default`: build
 - `init`: initializes folders to be used
 - `clean`: clear public/ directory, except for public/img
 - `html`: partials injection into html, minfication and copy from src/*.html to public/
 - `images`: image minification and copy from src/img/* to public/img/
 - `bundle`: searchs for entries (src/js/*.js), watch for modifications, bundles (browserify, babelify and minify) and copy from src/js/*.js to public/js/
 - `sass`: scss compilation and transformation to css, bundles entries on the high level (src/scss/*.scss) to public/css/
-- `dev`: watches for deleted files and unlink them in their corresponding path in public/
+- `dev`: watches for modifications and setup tasks for development
 - `vendors`: bundles and unglify all vendors from src/js/vendors/ folder, if the folders doesn't exists, just create it
 - `watch`: watches for modifications
 
@@ -31,7 +32,7 @@ or you can install a package with any package manager and then import them in th
 | argument             | Description                                              
 |----------------------|----------------------------------------------------------
 | `--vhost='url'`      | path.to/vhost/ (e.g.: local.dev) the actual project root is resolved in serve.js
-| `-p`                 | declares ENV in production mode, usage preferred with task `build` like so: `gulp build -p`
-| `default`            | watches for modifications
-| `build`              | just builds, usage preferred with argv `-p` like so: `gulp build -p`
+| `-p`                 | declares ENV in production mode
+| `dev`            | watches for modifications
+| `default` (no args)              | just builds, usage preferred with argv `-p`
 | `-s`                 | creates server

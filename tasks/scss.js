@@ -17,9 +17,9 @@ module.exports = function (gulp, callback) {
         }))
         .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
         .pipe(gulp.dest(gulp.opts.dest.css))
-        .pipe(hash.manifest('public/assets.json', {
+        .pipe(hash.manifest(gulp.opts.dest.root + '/assets.json', {
             deletOld: true,
-            sourceDir: __dirname + '/public/css'
+            sourceDir: __dirname + '/' + gulp.opts.dest.root + '/css'
         }))
         .pipe(gulp.dest('.'));
 };

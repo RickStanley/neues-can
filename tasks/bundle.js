@@ -45,9 +45,9 @@ function setBundles(gulp) {
             .on('error', gulp.opts.swallowError)
             .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
             .pipe(gulp.dest(gulp.opts.dest.js))
-            .pipe(hash.manifest('public/assets.json', {
+            .pipe(hash.manifest(gulp.opts.dest.root + '/assets.json', {
                 deletOld: true,
-                sourceDir: __dirname + '/public/js'
+                sourceDir: __dirname + '/' + gulp.opts.dest.root + '/js'
             }))
             .pipe(gulp.dest('.'));
         b.on('log', console.log);
@@ -76,9 +76,9 @@ module.exports = function (gulp, callback) {
                         .on('error', gulp.opts.swallowError)
                         .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
                         .pipe(gulp.dest(gulp.opts.dest.js))
-                        .pipe(hash.manifest('public/assets.json', {
+                        .pipe(hash.manifest(gulp.opts.dest.root + '/assets.json', {
                             deletOld: true,
-                            sourceDir: __dirname + '/public/js'
+                            sourceDir: __dirname + '/' + gulp.opts.dest.root + '/js'
                         }))
                         .pipe(gulp.dest('.'));
                 });
@@ -92,9 +92,9 @@ module.exports = function (gulp, callback) {
                 .on('error', gulp.opts.swallowError)
                 .pipe(gulpIf(!gulp.opts.env.isProduction, sourcemaps.write('./')))
                 .pipe(gulp.dest(gulp.opts.dest.js))
-                .pipe(hash.manifest('public/assets.json', {
+                .pipe(hash.manifest(gulp.opts.dest.root + '/assets.json', {
                     deletOld: true,
-                    sourceDir: __dirname + '/public/js'
+                    sourceDir: __dirname + '/' + gulp.opts.dest.root + '/js'
                 }))
                 .pipe(gulp.dest('.'));
             streams.push(bundle);

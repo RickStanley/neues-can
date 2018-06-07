@@ -17,9 +17,14 @@ $desktop-width: 1024px;
     font-size: 20px;
   }
  */
+@mixin mobile {
+  @media (max-width: $tablet-width - 1px) {
+    @content;
+  }
+}
 
 @mixin tablet {
-  @media (min-width: #{$tablet-width}) {
+  @media (if($mobileFirst, #{min-width}, #{max-width}): #{$tablet-width}) {
     @content;
   }
 }
@@ -32,7 +37,7 @@ $desktop-width: 1024px;
  */
 
 @mixin desktop {
-  @media (min-width: #{$desktop-width}) {
+  @media (if($mobileFirst, #{min-width}, #{max-width}): #{$desktop-width}) {
     @content;
   }
 }
@@ -55,57 +60,57 @@ $desktop-width: 1024px;
     }
   }
   @if $point==xxlarge {
-    @media (min-width: 1921px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 1921px) {
       @content;
     }
   }
   @if $point==xlarge {
-    @media (min-width: 1600px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 1600px) {
       @content;
     }
   }
   @if $point==large {
-    @media (min-width: 1441px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 1441px) {
       @content;
     }
   }
   @else if $point==regular-screen {
-    @media (min-width: 1200px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 1200px) {
       @content;
     }
   }
   @else if $point==medium {
-    @media (min-width: 1024px) {
+    @media ( if($mobileFirst, #{min-width}, #{max-width}):  1024px) {
       @content;
     }
   }
   @else if $point==landscape {
-    @media (min-width: 1024px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 1024px) {
       @content;
     }
   }
   @else if $point==smaller-screen {
-    @media (min-width: 800px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 800px) {
       @content;
     }
   }
   @else if $point==portrait {
-    @media (min-width: 768px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 768px) {
       @content;
     }
   }
   @else if $point==small {
-    @media (min-width: 640px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 640px) {
       @content;
     }
   }
   @else if $point==large-mobile {
-    @media (min-width: 480px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 480px) {
       @content;
     }
   }
   @else if $point==mobile {
-    @media (min-width: 360px) {
+    @media (if($mobileFirst, #{min-width}, #{max-width}): 360px) {
       @content;
     }
   }
@@ -186,10 +191,6 @@ $desktop-width: 1024px;
 // 		color: darker($red);
 // 	}
 // }
-
-@mixin circle() {
-  border-radius: 50em;
-}
 
 @mixin pseudo($display: block, $pos: absolute, $content: ''){
   content: $content;
@@ -345,33 +346,9 @@ $z-indexes: ( "outdated-browser", "modal", "site-header", "page-wrapper", "site-
   }
 }
 
-@mixin keyframes($name, $degs) {
-  @keyframes #{$name} {
-    0% {
-      transform: rotate(#{$degs}deg);
-    }
-    25% {
-      transform: rotate(#{$degs + 6.5}deg);
-    }
-    50% {
-      transform: rotate(#{$degs}deg);
-    }
-    75% {
-      transform: rotate(#{$degs - 6.5}deg);
-    }
-    100% {
-      transform: rotate(#{$degs}deg);
-    }
-  }
-}
-
 // ==============================
 // Font size mixin
 // ==============================
-
-//  default font scale bounding
-$font-lock-min:  400px !default; 
-$font-lock-max: 1000px !default;
 
 //  font-size 
 @mixin font-size(

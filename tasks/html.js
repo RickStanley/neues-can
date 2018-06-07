@@ -22,22 +22,25 @@ module.exports = function (gulp, callback) {
         }));
     });
     return stream
-        .pipe(inject(gulp.src('public/css/*.css'), {
-            removeTags: true,
-            transform: function (filePath, file) {
-                return `<style>${file.contents.toString('utf8')}</style>`;
-            }
-        }))
-        .pipe(inject(gulp.src(['!public/js/vendors.js', 'public/js/*.js'], {
+        // This is for inline css
+        // .pipe(inject(gulp.src(gulp.opts.dest.root+'/css/*.css'), {
+        //     removeTags: true,
+        //     transform: function (filePath, file) {
+        //         return `<style>${file.contents.toString('utf8')}</style>`;
+        //     }
+        // }))
+        .pipe(inject(gulp.src(['!' + gulp.opts.dest.root + '/js/vendors.js', gulp.opts.dest.root + '/js/*.js', gulp.opts.dest.root + '/css/*.css'], {
             read: false
         }).pipe(gulpIf(gulp.opts.env.isProduction, hash(opts))), {
-            addRootSlash: false
+            addRootSlash: false,
+            ignorePath: gulp.opts.dest.root
         }))
-        .pipe(inject(gulp.src('public/js/vendors.js', {
+        .pipe(inject(gulp.src(gulp.opts.dest.root + '/js/vendors.js', {
             read: false
         }), {
             name: 'vendors',
-            addRootSlash: false
+            addRootSlash: false,
+            ignorePath: gulp.opts.dest.root
         }))
         .pipe(htmlmin({
             collapseWhitespace: true,

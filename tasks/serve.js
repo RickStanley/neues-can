@@ -1,5 +1,5 @@
 const browserSync = require('browser-sync').create(),
-        watch = require('gulp-watch');
+    watch = require('gulp-watch');
 
 module.exports = function (gulp, callback) {
     var vhostUrl = '';
@@ -22,24 +22,19 @@ module.exports = function (gulp, callback) {
     }
     if (typeof vhostUrl === 'undefined' || vhostUrl === '' || vhostUrl === null) {
         browserSync.init({
+            files: [gulp.opts.dest.root + "/*.html", gulp.opts.dest.root + "/css/*.css", gulp.opts.dest.root + "/js/*.js", "assets/**/*", gulp.opts.dest.root + "/img/*.{png,gif,jpg,jpeg,svg}"],
             server: {
-                baseDir: "./"
+                baseDir: "./" + gulp.opts.dest.root
             },
-            injectChanges: true            
+            injectChanges: true
         });
     } else {
         browserSync.init({
+            files: [gulp.opts.dest.root + "/*.html", gulp.opts.dest.root + "/css/*.css", gulp.opts.dest.root + "/js/*.js", "assets/**/*", gulp.opts.dest.root + "/img/*.{png,gif,jpg,jpeg,svg}"],
             proxy: vhostUrl,
             injectChanges: true
         });
     }
 
-    watch([
-        __dirname + '/../' + gulp.opts.src.html.pages,
-        __dirname + '/../' + gulp.opts.src.html.partials.glob,
-        __dirname + '/../' + gulp.opts.src.css.includes,
-        __dirname + '/../' + gulp.opts.src.js
-    ]).on('change', browserSync.reload);
-    
     callback();
 };
