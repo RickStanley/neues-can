@@ -1,15 +1,16 @@
 (function () {
     /**
         ## Tasks
-        - `build`: Just build
-        - `init`: Initialize workspace
-        - `dev`: Opens server
-        - `scripts`: Builds scripts
-        - `vendors`: Builds vendors
-        - `styles`: Builds styles
-        - `injectHtml`: Injects partials, into the html
-        - `images`: Minify images
-        - `watch`: Watch for changes
+        - `default` (or no args): Just build 🏗️
+        - `build`: Just build 🏗️
+        - `init`: Initialize workspace ⛺
+        - `dev`: Opens server (for proxy see general arguments bellow) 👨‍💻
+        - `scripts`: Build scripts 📝
+        - `vendors`: Build vendors 📜
+        - `styles`: Build styles 🎨
+        - `injectHtml`: Injects partials, into the html 💉
+        - `images`: Minify images 🖼️
+        - `watch`: Watch for changes 👀
 
         #args
         | `--vhost=url` or `--v=url`      | e.g.: `--v=local.dev`, proxy to your virutal host
@@ -17,6 +18,7 @@
         If you create a new partial (i.e.: html partial to be included, src/partials/your_partial.html), you must declare its html filename in the html file target.
         <!-- your_partial:html -->
         <!-- endinject -->
+        ⚠️ **Important**: When deploying to production/dev, you need to uningnore the `public/` folder in `.gitignore`.
      */
     'use strict';
     const gulp = require('gulp');
@@ -54,7 +56,7 @@
             dest: 'public/js/'
         },
         images: {
-            src: 'src/img/**/*.{jpg,jpeg,png}',
+            src: 'src/img/**/*.{jpg,jpeg,png,svg,gif}',
             dest: 'public/img/'
         },
         html: {
