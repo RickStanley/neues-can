@@ -36,7 +36,7 @@ If you create a new partial (i.e.: html partial to be included, `src/partials/yo
 ```
 Pre-defined partials are: `footer.html`, `head.html` and `header.html`
 ### Folder init structure
- ```
+ ```bash
  root
 ├── public
 |   ├── js/
