@@ -1,10 +1,14 @@
 // Variables, e.g.: colour, size, etc; these are definitions, non-changeble
 
-$mobileFirst: true;
+$mobileFirst: true !default;
 
 // Contain max-wdith
-$maxWidth: 1200px;
+$maxWidth: 1200px !default;
 
 //  default font scale bounding
 $font-lock-min:  400px !default; 
 $font-lock-max: 1000px !default;
+
+/* Media Query */
+$tablet-min-width: 768px !default;
+$tablet-max-width: 1024px !default;

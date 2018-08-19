@@ -2,13 +2,18 @@
 
 // :root { @include font-size(16px, 24px); }
 
-.inline_block-middle {
+.inline_block--middle {
     display: inline-block;
     vertical-align: middle;
 }
 
-.contain_width {
+.contain-width {
     max-width: $maxWidth;
+}
+.contain-width--center {
+    max-width: $maxWidth;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 

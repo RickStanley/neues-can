@@ -45,6 +45,7 @@
     const paths = {
         styles: {
             src: 'src/styles/main.scss',
+            includes: 'src/styles/**/*.scss',
             dest: 'public/styles/'
         },
         scripts: {
@@ -61,7 +62,8 @@
         },
         html: {
             src: 'src/*.html',
-            partials: 'src/partials/',
+            partials: 'src/partials/*.html',
+            partials_dir: 'src/partials/',
             dest: 'public/'
         }
     };
@@ -82,10 +84,7 @@
     }
 
     function styles() {
-        return gulp.src(paths.styles.src, {
-                sourcemaps: true,
-                since: gulp.lastRun(styles)
-            })
+        return gulp.src(paths.styles.src)
             .pipe(sass().on('error', sass.logError))
             .pipe(sourcemaps.init())
             .pipe(cleanCSS())
@@ -103,8 +102,7 @@
 
     function scripts() {
         return gulp.src(paths.scripts.src, {
-                sourcemaps: true,
-                since: gulp.lastRun(scripts)
+                sourcemaps: true
             })
             .pipe(babel({
                 presets: ['env']
@@ -121,7 +119,7 @@
     function vendors() {
         return gulp.src(paths.vendors.src, {
                 sourcemaps: true,
-                since: gulp.lastRun(scripts)
+                since: gulp.lastRun(vendors)
             })
             .pipe(uglify())
             .on('error', swallowError)
@@ -156,14 +154,12 @@
     }
 
     function injectHtml() {
-        let stream = gulp.src(paths.html.src, {
-            since: gulp.lastRun(injectHtml)
-        });
-        const partials = fs.readdirSync(paths.html.partials);
+        let stream = gulp.src(paths.html.src);
+        const partials = fs.readdirSync(paths.html.partials_dir);
         partials.forEach(partial => {
             // Removes the ext, we are looking for the name only
             const partial_name = partial.substring(partial.indexOf('.'), -1);
-            stream = stream.pipe(inject(gulp.src(paths.html.partials + partial_name + path.extname(partial)), {
+            stream = stream.pipe(inject(gulp.src(paths.html.partials_dir + partial_name + path.extname(partial)), {
                 name: partial_name,
                 removeTags: true,
                 transform: function (filePath, file) {
@@ -213,9 +209,9 @@
     function watch() {
         gulp.watch(paths.scripts.src, scripts);
         gulp.watch(paths.vendors.src, vendors);
-        gulp.watch(paths.styles.src, styles);
+        gulp.watch(paths.styles.includes, styles);
         gulp.watch(paths.images.src, images);
-        gulp.watch(paths.html.src, injectHtml);
+        gulp.watch([paths.html.src, paths.html.partials], injectHtml);
     }
 
     function init() {

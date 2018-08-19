@@ -6,42 +6,30 @@
   @return ($n / 960) * 1%;
 }
 
-
-/* Media Query */
-$tablet-width: 768px;
-$desktop-width: 1024px;
-
 /*
 	uso
-	@include tablet {
+	@include mobile {
     font-size: 20px;
   }
  */
+
 @mixin mobile {
-  @media (max-width: $tablet-width - 1px) {
+  @media only screen and (max-width: $tablet-width - 1px) {
     @content;
   }
 }
 
 @mixin tablet {
-  @media (if($mobileFirst, #{min-width}, #{max-width}): #{$tablet-width}) {
+  @media only screen and (min-width: #{$tablet-min-width}) and (max-width: #{$tablet-max-width}) {
     @content;
   }
 }
-
-/*
-	uso
-	@include desktop {
-    font-size: 20px;
-  }
- */
 
 @mixin desktop {
-  @media (if($mobileFirst, #{min-width}, #{max-width}): #{$desktop-width}) {
+  @media only screen and (min-width: #{$tablet-max-width + 1}) {
     @content;
   }
 }
-
 
 /* Vertical align */
 
@@ -53,7 +41,7 @@ $desktop-width: 1024px;
   transform: translateY(-50%);
 }
 
-@mixin breakpoint($point) {
+@mixin breakpoint($point, $mobileFirst: $mobileFirst) {
   @if $point==retina {
     @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
       @content;
@@ -80,7 +68,7 @@ $desktop-width: 1024px;
     }
   }
   @else if $point==medium {
-    @media ( if($mobileFirst, #{min-width}, #{max-width}):  1024px) {
+    @media ( if($mobileFirst, #{min-width}, #{max-width}): 1024px) {
       @content;
     }
   }
@@ -191,8 +179,7 @@ $desktop-width: 1024px;
 // 		color: darker($red);
 // 	}
 // }
-
-@mixin pseudo($display: block, $pos: absolute, $content: ''){
+@mixin pseudo($display: block, $pos: absolute, $content: '') {
   content: $content;
   display: $display;
   position: $pos;
@@ -206,7 +193,6 @@ $desktop-width: 1024px;
 //   top: -1rem; left: -1rem;
 //   width: 1rem; height: 1rem;
 // }
-
 // ==============================
 // USAGE
 // ==============================
@@ -311,7 +297,6 @@ $z-indexes: ( "outdated-browser", "modal", "site-header", "page-wrapper", "site-
 // .site-header {
 //   z-index: z('site-header');
 // }
-
 @mixin truncate($truncation-boundary) {
   max-width: $truncation-boundary;
   white-space: nowrap;
@@ -349,47 +334,41 @@ $z-indexes: ( "outdated-browser", "modal", "site-header", "page-wrapper", "site-
 // ==============================
 // Font size mixin
 // ==============================
-
 //  font-size 
-@mixin font-size(
-  $min,                         // font-size 
-  $max: null,                   // optional maximum font size
-  $lock-min: $font-lock-min,  // optional minimum viewport width 
-  $lock-max: $font-lock-max   // optional maximum viewport width 
-  ){
-    & { font-size: $min; }
-    @if $max {
-      @media (min-width: $lock-min) and (max-width: $lock-max){ 
-        & { 
-          font-size: calc(
-            #{$min} + 
-            #{num($max) - num($min)} * 
-            (100vw - #{$lock-min}) / 
-            #{num($lock-max) - num($lock-min)}
-          ); 
-        } 
-      }
-      @media (min-width: $lock-max){ 
-        & { font-size: $max; } 
+@mixin font-size( $min, // font-size 
+$max: null, // optional maximum font size
+$lock-min: $font-lock-min, // optional minimum viewport width 
+$lock-max: $font-lock-max // optional maximum viewport width 
+) {
+  & {
+    font-size: $min;
+  }
+  @if $max {
+    @media (min-width: $lock-min) and (max-width: $lock-max) {
+      & {
+        font-size: calc( #{$min} + #{num($max) - num($min)} * (100vw - #{$lock-min}) / #{num($lock-max) - num($lock-min)});
       }
     }
+    @media (min-width: $lock-max) {
+      & {
+        font-size: $max;
+      }
+    }
+  }
 }
 
 //  strip units helper function
-@function num($input){ 
-  @return $input/($input * 0 + 1); 
+@function num($input) {
+  @return $input/($input * 0 + 1);
 }
 
 // ==============================
 // Usage
 // ==============================
-
 // simple (no scale)  
 // p { @include font-size(15px); }       
-
 //  fluid scale based on default bounding
 // :root { @include font-size(16px, 24px); }
-
 //  fluid scale based on custom bounding
 //  (you could also change defaults) 
 // :root { @include font-size(16px, 24px, 320px, 960px); }
