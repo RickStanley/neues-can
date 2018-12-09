@@ -9,7 +9,7 @@ Kickstarter simple tasks focused and pure [ES5](https://caniuse.com/#feat=es5).
  - `scripts`: Build scripts 📝
  - `vendors`: Build vendors 📜
  - `styles`: Build styles 🎨
- - `injectHtml`: Injects partials, into the html 💉
+ - `html`: Injects partials, scripts and styles into the html 💉
  - `images`: Minify images 🖼️
  - `watch`: Watch for changes 👀
 
@@ -40,11 +40,11 @@ Pre-defined partials are: `footer.html`, `head.html` and `header.html`
  root
 ├── public
 |   ├── js/
-|   |   ├── main.min.js
-|   |   └── main.min.js.map
+|   |   ├── *.min.js
+|   |   └── *.min.js.map
 |   ├── styles/
-|   |   ├── main.min.css
-|   |   └── main.min.css.map
+|   |   ├── *.min.css
+|   |   └── *.min.css.map
 │   └── *.html  
 └── src
     ├── img/*.{svg,jpeg,jpg,png,gif}
@@ -53,13 +53,14 @@ Pre-defined partials are: `footer.html`, `head.html` and `header.html`
     |   └── *.js
     ├── partials/*.html
     ├── styles/
+    |   ├── commons/
+    |   |   ├── _common.scss
+    |   |   └── _text.scss
     |   ├── sections/
     |   ├── utils/
-    |   |   ├── _common.scss
     |   |   ├── _functions.scss
-    |   |   ├── _text.scss
     |   |   ├── _variables.scss
     |   |   └── index.scss
-    |   └── main.scss
+    |   └── *.scss
     └── *.html
  ```
